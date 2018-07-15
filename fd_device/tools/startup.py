@@ -26,6 +26,9 @@ def get_rabbitmq_address(logger, session):
         if check_rabbitmq_address(connection.address):
             session.commit()
             return True
+        else:
+            logger.error("Rabbitmq address check of 127.0.0.1 failed. Maybe check credentials")
+            return False
 
     # try previously found address (if available) to see if it is still working
     if connection.address:
@@ -80,14 +83,13 @@ def check_rabbitmq_address(address):
     url = 'http://' + address + ':15672/api/aliveness-test/farm_monitor'
 
     config = get_config()
-    user = config.RMQ_USER
-    password = config.RMQ_USER_PASSWORD
+    user = config.RABBITMQ_USER
+    password = config.RABBITMQ_PASSWORD
 
     r = requests.get(url, auth=(user, password))
 
-    if r.status_code == '200':
+    if r.status_code == requests.codes.ok:
         data = r.json()
         if data['status'] == 'ok':
             return True
-
     return False

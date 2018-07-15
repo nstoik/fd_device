@@ -15,6 +15,9 @@ netifaces = "*"
 click = "*"
 psutil = "*"
 requests = "*"
+pika = "*"
+celery = "*"
+multiprocessing-logging = "*"
 
 [requires]
 python_version = "3.6"

@@ -1,6 +1,22 @@
 import os
 import logging
 
+class CeleryConfig(object):
+    """ Celery configuration """
+
+    ## Broker settings.
+    broker_url = 'pyamqp://fm:farm_monitor@localhost/farm_monitor'
+
+    # List of modules to import when the Celery worker starts.
+    # imports = ('fm_server.device.tasks',)
+
+    ## Using the database to store task state and results.
+    result_backend = 'rpc://'
+
+    broker_transport_options = {'confirm_publish': True}
+
+    broker_pool_limit = 0
+
 class Config(object):
     """Base configuration."""
 
@@ -11,12 +27,13 @@ class Config(object):
     LOG_LEVEL = logging.INFO
     LOG_FILE = "/home/pi/farm_monitor/fl/farm_device.log"
 
-    RMQ_USER = 'fm'
-    RMQ_USER_PASSWORD = 'farm_monitor'
-
     UPDATER_PATH = "/home/pi/farm_monitor/farm_update/update.sh"
 
     SQLALCHEMY_DATABASE_URI = 'sqlite:////home/pi/farm_monitor/fd/fd_database.db'
+
+    RABBITMQ_USER = 'fd'
+    RABBITMQ_PASSWORD = 'farm_monitor'
+    RABBITMQ_VHOST = 'farm_monitor'
 
 
 class DevConfig(Config):

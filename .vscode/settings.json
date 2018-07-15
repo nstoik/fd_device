@@ -1,4 +1,5 @@
 {
     "python.pythonPath": "E:\\Documents\\Envs\\fd_device-HC8Bsna8\\scripts\\python.exe",
     "python.linting.pylintEnabled": true,
+    "git.enabled": false,
 }
