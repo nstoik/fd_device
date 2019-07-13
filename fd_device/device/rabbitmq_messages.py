@@ -32,9 +32,9 @@ class ReceiveMessages():
 
         """
         LOGGER.debug('Declaring exchange %s', exchange_name)
-        self._channel.exchange_declare(self.on_exchange_declareok,
-                                       exchange_name,
-                                       self.exchange_type)
+        self._channel.exchange_declare(callback=self.on_exchange_declareok,
+                                       exchange=exchange_name,
+                                       exchange_type=self.exchange_type)
 
     def on_exchange_declareok(self, unused_frame):
         """Invoked by pika when RabbitMQ has finished the Exchange.Declare RPC
@@ -55,7 +55,8 @@ class ReceiveMessages():
 
         """
         LOGGER.debug('Declaring reply queue')
-        self._channel.queue_declare(callback=self.on_queue_declareok,
+        self._channel.queue_declare(queue='',
+                                    callback=self.on_queue_declareok,
                                     exclusive=True,
                                     auto_delete=True)
     
@@ -100,8 +101,9 @@ class ReceiveMessages():
         """
         LOGGER.debug('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
-        self._consumer_tag = self._channel.basic_consume(consumer_callback=self.on_message,
+        self._consumer_tag = self._channel.basic_consume(on_message_callback=self.on_message,
                                                          queue=self.queue_name)
+
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer
         for some reason. If RabbitMQ does cancel the consumer,
@@ -128,7 +130,7 @@ class ReceiveMessages():
         """
         if self._channel:
             LOGGER.debug('Sending a Basic.Cancel RPC command to RabbitMQ')
-            self._channel.basic_cancel(self.on_cancelok, self._consumer_tag)
+            self._channel.basic_cancel(consumer_tag=self._consumer_tag, callback=self.on_cancelok)
 
     def on_cancelok(self, unused_frame):
         """This method is invoked by pika when RabbitMQ acknowledges the

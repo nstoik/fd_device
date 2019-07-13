@@ -56,45 +56,44 @@ class DeviceConnection():
                                            virtual_host=self._virtual_host, credentials=creds)
         return pika.SelectConnection(parameters=params,
                                      on_open_callback=self.on_connection_open,
-                                     stop_ioloop_on_close=False)
+                                     on_open_error_callback=self.on_connection_open_error,
+                                     on_close_callback=self.on_connection_closed)
     
-    def on_connection_open(self, unused_connection):
+    def on_connection_open(self, _unused_connection):
         """This method is called by pika once the connection to RabbitMQ has
         been established. It passes the handle to the connection object in
         case we need it, but in this case, we'll just mark it unused.
 
-        :type unused_connection: pika.SelectConnection
+        :type _unused_connection: pika.SelectConnection
 
         """
         LOGGER.debug('Connection opened')
-        self.add_on_connection_close_callback()
         self.open_channel()
 
-    def add_on_connection_close_callback(self):
-        """This method adds an on close callback that will be invoked by pika
-        when RabbitMQ closes the connection to the publisher unexpectedly.
-
+    def on_connection_open_error(self, _unused_connection, err):
+        """This method is called by pika if the connection to RabbitMQ
+        can't be established.
+        :param pika.SelectConnection _unused_connection: The connection
+        :param Exception err: The error
         """
-        LOGGER.debug('Adding connection close callback')
-        self._connection.add_on_close_callback(self.on_connection_closed)
+        LOGGER.error('Connection open failed: %s', err)
+        self.reconnect()
 
-    def on_connection_closed(self, connection, reply_code, reply_text):
+    def on_connection_closed(self, _unused_connection, reason):
         """This method is invoked by pika when the connection to RabbitMQ is
         closed unexpectedly. Since it is unexpected, we will reconnect to
         RabbitMQ if it disconnects.
 
         :param pika.connection.Connection connection: The closed connection obj
-        :param int reply_code: The server provided reply_code if given
-        :param str reply_text: The server provided reply_text if given
+        :param Exception reason: exception representing reason for loss of connection.
 
         """
         self._channel = None
         if self._closing:
             self._connection.ioloop.stop()
         else:
-            LOGGER.warning('Connection closed, reopening in 5 seconds: (%s) %s',
-                           reply_code, reply_text)
-            self._connection.add_timeout(5, self.reconnect)
+            LOGGER.warning('Connection closed, reopening in 5 seconds: %s', reason)
+            self._connection.ioloop.call_later(5, self.reconnect)
     
     def reconnect(self):
         """Will be invoked by the IOLoop timer if the connection is
@@ -148,7 +147,7 @@ class DeviceConnection():
         LOGGER.debug('Adding channel close callback')
         self._channel.add_on_close_callback(self.on_channel_closed)
 
-    def on_channel_closed(self, channel, reply_code, reply_text):
+    def on_channel_closed(self, channel, reason):
         """Invoked by pika when RabbitMQ unexpectedly closes the channel.
         Channels are usually closed if you attempt to do something that
         violates the protocol, such as re-declare an exchange or queue with
@@ -156,12 +155,11 @@ class DeviceConnection():
         to shutdown the object.
 
         :param pika.channel.Channel: The closed channel
-        :param int reply_code: The numeric reason the channel was closed
-        :param str reply_text: The text reason the channel was closed
+        :param str reason: The reason the channel was closed
 
         """
         if not self._closing:
-            LOGGER.warning('Channel was closed: (%s) %s', reply_code, reply_text)
+            LOGGER.warning('Channel was closed: %s', reason)
             self._connection.close()
 
     def close_channel(self):
@@ -255,15 +253,15 @@ class Heartbeat():
 
         """
         self.LOGGER.debug('Declaring exchange %s', exchange_name)
-        self._channel.exchange_declare(self.on_exchange_declareok,
-                                       exchange_name,
-                                       self.exchange_type)
+        self._channel.exchange_declare(exchange=exchange_name,
+                                       exchange_type=self.exchange_type,
+                                       callback=self.on_exchange_declareok)
 
-    def on_exchange_declareok(self, unused_frame):
+    def on_exchange_declareok(self, _unused_frame,):
         """Invoked by pika when RabbitMQ has finished the Exchange.Declare RPC
         command.
 
-        :param pika.Frame.Method unused_frame: Exchange.DeclareOk response frame
+        :param pika.Frame.Method _unused_frame: Exchange.DeclareOk response frame
 
         """
         self.LOGGER.debug('Exchange declared')
@@ -278,7 +276,8 @@ class Heartbeat():
 
         """
         self.LOGGER.debug('Declaring reply queue')
-        self._channel.queue_declare(callback=self.on_queue_declareok,
+        self._channel.queue_declare(queue='',
+                                    callback=self.on_queue_declareok,
                                     exclusive=True,
                                     auto_delete=True)
 
@@ -295,9 +294,9 @@ class Heartbeat():
         self.reply_queue_name = method_frame.method.queue
         self.LOGGER.debug('Reply queue declared with name %s',
                          self.reply_queue_name)
-        self._channel.basic_consume(consumer_callback=self.on_reply_received,
+        self._channel.basic_consume(on_message_callback=self.on_reply_received,
                                     queue=self.reply_queue_name,
-                                    no_ack=True)
+                                    auto_ack=True)
         self.start_publishing()        
 
     def start_publishing(self):
@@ -359,8 +358,7 @@ class Heartbeat():
             return
         LOGGER.debug('Scheduling next message for %0.1f seconds',
                     self.HEARTBEAT_INTERVAL)
-        self._connection.add_timeout(self.HEARTBEAT_INTERVAL,
-                                     self.publish_message)
+        self._connection.ioloop.call_later(self.HEARTBEAT_INTERVAL, self.publish_message)
 
     def publish_message(self):
         """If the class is not stopping, publish a message to RabbitMQ,
@@ -398,7 +396,7 @@ class Heartbeat():
         self.LOGGER.debug('Published heartbeat message # %i', self._message_number)
         self.schedule_next_message()
 
-        self._connection.add_timeout(self.TIMEOUT, self.check_timeout)
+        self._connection.ioloop.call_later(self.TIMEOUT, self.check_timeout)
 
     def on_reply_received(self, channel, method, header, body):
         if self._corr_id == header.correlation_id:

@@ -8,16 +8,16 @@ pylint = "*"
 "e1839a8" = {path = ".", editable = true}
 
 [packages]
-sqlalchemy = "*"
-alembic = "*"
-gpiozero = "*"
-netifaces = "*"
-click = "*"
-psutil = "*"
-requests = "*"
-pika = "*"
-celery = "*"
-multiprocessing-logging = "*"
+SQLAlchemy = "~=1.3.0"
+alembic = "~=1.0.11"
+gpiozero = "~=1.5.1"
+netifaces = "~=0.10.9"
+click = "~=7.0.0"
+psutil = "~=5.6.3"
+requests = "~=2.22.0"
+pika = "~=1.0.1"
+celery = "~=4.3.0"
+multiprocessing-logging = "~=0.3.0"
 
 [requires]
 python_version = "3.6"
