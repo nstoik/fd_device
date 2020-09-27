@@ -1,19 +1,5 @@
 {
-    "python.pythonPath": "/home/pi/.local/share/virtualenvs/fd_device-Ds9S_O1w/bin/python",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
-    "workbench.colorCustomizations": {
-        "activityBar.background": "#f5fa8e",
-        "activityBar.foreground": "#15202b",
-        "activityBar.inactiveForeground": "#15202b99",
-        "activityBarBadge.background": "#08afb7",
-        "activityBarBadge.foreground": "#e7e7e7",
-        "titleBar.activeBackground": "#f0f85d",
-        "titleBar.inactiveBackground": "#f0f85d99",
-        "titleBar.activeForeground": "#15202b",
-        "titleBar.inactiveForeground": "#15202b99",
-        "statusBar.background": "#f0f85d",
-        "statusBarItem.hoverBackground": "#ebf62c",
-        "statusBar.foreground": "#15202b"
-    },
+    "peacock.color": "#f1f85d",
 }
