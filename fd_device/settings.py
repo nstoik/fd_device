@@ -24,12 +24,13 @@ class Config(object):
     PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
 
     PRESENCE_PORT = 5554
+
     LOG_LEVEL = logging.INFO
-    LOG_FILE = "/home/pi/farm_monitor/fl/farm_device.log"
+    LOG_FILE = "/logs/farm_device.log"
 
     UPDATER_PATH = "/home/pi/farm_monitor/farm_update/update.sh"
 
-    SQLALCHEMY_DATABASE_URI = 'sqlite:////home/pi/farm_monitor/fd/fd_database.db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://fd:farm_device@db/farm_device.db'
 
     RABBITMQ_USER = 'fd'
     RABBITMQ_PASSWORD = 'farm_monitor'

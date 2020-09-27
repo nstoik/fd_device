@@ -1,0 +1,50 @@
+version: '3.8'
+
+services: 
+  fd_device:
+    image: nstoik/fd_device:latest
+    container_name: fd_device
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - farm_device
+    depends_on:
+      - "fd_db"
+    volumes:
+      - "logs:/logs"
+  fd_db:
+    image: postgres:11
+    container_name: "fd_db"
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: farm_device
+      POSTGRES_USER: fd
+      POSTGRES_DB: farm_device.db
+    volumes:
+      - "dbdata:/var/lib/postgresql/data"
+    networks:
+      - farm_device
+  fd_pgadmin:
+    container_name: fd_pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: fd@farmmonitor.ca
+      PGADMIN_DEFAULT_PASSWORD: farm_device
+    volumes:
+        - pgadmin:/root/.pgadmin
+        - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5051:80"
+    networks:
+      - farm_device
+    restart: unless-stopped
+  
+volumes:
+  logs:
+  dbdata:
+  pgadmin:
+
+networks:
+  farm_device:
+    name: farm_device

@@ -1,0 +1,33 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or the definition README at
+// https://github.com/microsoft/vscode-dev-containers/tree/master/containers/python-3
+{
+	"name": "FD DEVICE",
+	"context": "..",
+
+	 // The order of the files is important since later files override previous ones
+	 "dockerComposeFile": [
+        "../docker-compose.yml",
+        "dev.docker-compose.yml"
+    ],
+
+	"remoteUser": "fd",
+	"service": "fd_device",
+    "workspaceFolder": "/workspaces/fd_device",
+    "shutdownAction": "stopCompose",	
+
+	//  Uncomment the next line to run commands after the container is created.
+	"postCreateCommand": "git config --global core.autocrlf true",
+
+	// Uncomment the next line to use a non-root user. See https://aka.ms/vscode-remote/containers/non-root-user.
+	"runArgs": [ "-u", "fd" ],
+
+	"extensions": [
+		"ms-python.python",
+	],
+	"settings": {
+		//"python.pythonPath": "/usr/local/bin/python",
+		"python.linting.pylintEnabled": true,
+		//"python.linting.pylintPath": "/usr/local/bin/pylint",
+		"python.linting.enabled": true
+	}
+}
