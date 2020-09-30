@@ -43,6 +43,7 @@ def main():
     if not get_rabbitmq_address(logger, session):
         logger.error("No address for rabbitmq server found")
         time.sleep(1)
+        return
 
     device_connection = Process(target=run_connection)
     device_connection.start()

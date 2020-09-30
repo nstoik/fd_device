@@ -42,6 +42,8 @@ class DeviceConnection():
         self._port = 5672
         self._virtual_host = config.RABBITMQ_VHOST
 
+        return
+
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
         When the connection is established, the on_connection_open method

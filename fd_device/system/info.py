@@ -71,14 +71,24 @@ def get_device_name():
 def getserial():
 
     logger.debug("getting serial number")
-    # Extract serial from cpuinfo file
+    # Extract serial
     cpuserial = "0000000000000000"
     try:
+        # first try cpuinfo file
         f = open('/proc/cpuinfo', 'r')
         for line in f:
-            if line[0:6] == 'Serial':
+            if line.startswith('Serial'):
                 cpuserial = line[10:26]
+                f.close()
+                return cpuserial
         f.close()
+
+        # try the cgroup file if running in docker
+        f = open('/proc/self/cgroup', 'r')
+        line = f.readline()
+        cpuserial = line.split('/docker/')[1][:16]
+        f.close()
+        return cpuserial
     except:
         cpuserial = "ERROR000000000"
 
