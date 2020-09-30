@@ -9,6 +9,7 @@ services:
       dockerfile: .devcontainer/dev.Dockerfile
     networks:
       - farm_device
+      - farm_monitor
 
     volumes:
       # this is for vs code file editing inside the container
@@ -21,3 +22,8 @@ services:
   
 volumes:
   bashhistory:
+
+networks:
+  farm_monitor:
+    name: farm_monitor
+    external: true
