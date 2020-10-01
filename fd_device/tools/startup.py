@@ -21,14 +21,16 @@ def get_rabbitmq_address(logger, session):
 
     # try previously found address (if available) to see if it is still working
     if connection.address:
+        logger.debug(f'trying previous rabbitmq address of {connection.address}')
         if check_rabbitmq_address(logger, connection.address):
+            logger.info('previously used rabbitmq address is still valid')
             return True
 
     # try to connect to dns name fm_rabbitmq. For example if farm_monitor and farm_device are on the same network
     try:
         address = socket.gethostbyname('fm_rabbitmq')
         if check_rabbitmq_address(logger, address):
-            logger.debug(f"'fm_rabbitmq' host was found and the url was valid")
+            logger.info(f"'fm_rabbitmq' host was found and the url was valid")
             connection.address = address
             session.commit()
             return True
@@ -88,13 +90,19 @@ def check_rabbitmq_address(logger, address):
     user = config.RABBITMQ_USER
     password = config.RABBITMQ_PASSWORD
 
-    r = requests.get(url, auth=(user, password))
+    logger.debug(f'testing connection to: {url} with auth {user} - {password}')
 
-    if r.status_code == requests.codes.ok:
-        data = r.json()
-        if data['status'] == 'ok':
-            logger.debug(f'the url: {url} was succesfull')
-            return True
+    try:
+        r = requests.get(url, auth=(user, password))
+
+        if r.status_code == requests.codes.ok:
+            data = r.json()
+            if data['status'] == 'ok':
+                logger.debug(f'the url: {url} was succesfull')
+                return True
+    except requests.exceptions.ConnectionError:
+        logger.debug(f'the url: {url} had a connection failure')
+        return False
     
     logger.debug(f'the url: {url} was unsuccesfull, or the auth failed.')
     return False

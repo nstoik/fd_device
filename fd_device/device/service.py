@@ -338,18 +338,13 @@ class Heartbeat():
 
         """
         confirmation_type = method_frame.method.NAME.split('.')[1].lower()
-        self.LOGGER.debug('Received %s for delivery tag: %i',
-                         confirmation_type,
-                         method_frame.method.delivery_tag)
+        #self.LOGGER.debug(f'Received {confirmation_type} for delivery tag: {method_frame.method.delivery_tag}')
         if confirmation_type == 'ack':
             self._acked += 1
         elif confirmation_type == 'nack':
             self._nacked += 1
         self._deliveries.remove(method_frame.method.delivery_tag)
-        self.LOGGER.debug('Published %i messages, %i have yet to be confirmed, '
-                         '%i were acked and %i were nacked',
-                         self._message_number, len(self._deliveries),
-                         self._acked, self._nacked)
+        #self.LOGGER.debug(f'Published {self._message_number} messages, {len(self._deliveries)} to be confirmed, {self._acked} were acked and {self._nacked} were nacked')
 
     def schedule_next_message(self):
         """If we are not closing our connection to RabbitMQ, schedule another
@@ -358,8 +353,7 @@ class Heartbeat():
         """
         if self._stopping:
             return
-        LOGGER.debug('Scheduling next message for %0.1f seconds',
-                    self.HEARTBEAT_INTERVAL)
+        # LOGGER.debug(f'Scheduling next message for {self.HEARTBEAT_INTERVAL} seconds')
         self._connection.ioloop.call_later(self.HEARTBEAT_INTERVAL, self.publish_message)
 
     def publish_message(self):
@@ -395,7 +389,7 @@ class Heartbeat():
                                     properties=properties)
         self._message_number += 1
         self._deliveries.append(self._message_number)
-        self.LOGGER.debug('Published heartbeat message # %i', self._message_number)
+        #self.LOGGER.debug(f'Published heartbeat message # {self._message_number}')
         self.schedule_next_message()
 
         self._connection.ioloop.call_later(self.TIMEOUT, self.check_timeout)
