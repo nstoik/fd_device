@@ -12,7 +12,7 @@ config = context.config
 from fd_device.settings import get_config
 device_config = get_config()
 config.set_main_option('sqlalchemy.url', device_config.SQLALCHEMY_DATABASE_URI)
-config.set_main_option('script_location', device_config.APP_DIR + '/alembic')
+config.set_main_option('script_location', device_config.PROJECT_ROOT + '/migrations')
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
