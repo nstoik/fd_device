@@ -1,0 +1,23 @@
+name: Build Status
+
+on:
+  - push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install Python dependencies
+        run: |
+          pip install pipenv
+          pipenv install --dev
+      - run: cp .env.example .env
+      - name: Run Python lints
+        run: pipenv run fd_device lint --check
+      - name: Run Python tests
+        run: pipenv run fd_device test --coverage
