@@ -11,6 +11,10 @@
 
 	"remoteUser": "fd",
 	"service": "fd_device",
+	// workspace mount is used when connecting to a docker container on a remote host. Use absolute path.
+	// https://code.visualstudio.com/docs/remote/containers-advanced#_developing-inside-a-container-on-a-remote-docker-host
+	// Otherwise do not need workspaceMount
+	//"workspaceMount": "source=/home/ubuntu/fd_device,target=/workspaces/fd_device,type=bind,consistency=cached",
     "workspaceFolder": "/workspaces/fd_device",
     "shutdownAction": "stopCompose",	
 
