@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """Database module, including the SQLAlchemy database object and DB-related utilities."""
 from sqlalchemy import Column, ForeignKey, Integer
-from sqlalchemy.orm import relationship
 
-from fd_device.database.base import Base
+from fd_device.database.base import get_base
+
+Base = get_base(with_query=True)
 
 
-class CRUDMixin(object):
+class CRUDMixin:
     """Mixin that adds convenience methods for CRUD (create, read, update, delete) operations."""
 
     @classmethod
@@ -34,7 +35,7 @@ class CRUDMixin(object):
         return commit and session.commit()
 
 
-class Model(CRUDMixin, Base):
+class Model(CRUDMixin, Base):  # type: ignore[valid-type, misc]
     """Base model class that includes CRUD convenience methods."""
 
     __abstract__ = True
@@ -45,7 +46,7 @@ class Model(CRUDMixin, Base):
 class SurrogatePK(object):
     """A mixin that adds a surrogate integer 'primary key' column named ``id`` to any declarative-mapped class."""
 
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True)
 
@@ -53,8 +54,10 @@ class SurrogatePK(object):
     def get_by_id(cls, record_id, session=None):
         """Get record by ID."""
         if any(
-                (isinstance(record_id, (str, bytes)) and record_id.isdigit(),
-                 isinstance(record_id, (int, float))),
+            (
+                isinstance(record_id, (str, bytes)) and record_id.isdigit(),
+                isinstance(record_id, (int, float)),
+            ),
         ):
             if session:
                 return session.query.get(int(record_id))
@@ -63,7 +66,7 @@ class SurrogatePK(object):
         return None
 
 
-def reference_col(tablename, nullable=False, pk_name='id', **kwargs):
+def reference_col(tablename, nullable=False, pk_name="id", **kwargs):
     """Column that adds primary key foreign key reference.
 
     Usage: ::
@@ -72,5 +75,5 @@ def reference_col(tablename, nullable=False, pk_name='id', **kwargs):
         category = relationship('Category', backref='categories')
     """
     return Column(
-        ForeignKey('{0}.{1}'.format(tablename, pk_name)),
-        nullable=nullable, **kwargs)
+        ForeignKey("{0}.{1}".format(tablename, pk_name)), nullable=nullable, **kwargs
+    )

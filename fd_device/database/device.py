@@ -1,3 +1,4 @@
+"""The device models for the database."""
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -6,7 +7,9 @@ from .database import Model, SurrogatePK, reference_col
 
 
 class Connection(Model, SurrogatePK):
-    __tablename__ = 'connection'
+    """Represent the device's connecticon to the server."""
+
+    __tablename__ = "connection"
     address = Column(String(20))
     last_updated = Column(DateTime, onupdate=func.now())
     first_connected = Column(DateTime, default=func.now())
@@ -14,27 +17,33 @@ class Connection(Model, SurrogatePK):
 
 
 class Grainbin(Model):
-    __tablename__ = 'grainbin'
+    """Represent a Grainbin that is connected to the device."""
+
+    __tablename__ = "grainbin"
     id = Column(String(20), primary_key=True)
     bus_number = Column(Integer, nullable=False)
     creation_time = Column(DateTime, default=func.now())
     last_updated = Column(DateTime, onupdate=func.now())
     average_temp = Column(String(7))
 
-    device_id = reference_col('device')
+    device_id = reference_col("device")
 
     def __init__(self, id, bus_number, device_id):
+        """Create the Grainbin object."""
         self.id = id
         self.bus_number = bus_number
         self.device_id = device_id
-        self.average_temp = 'unknown'
+        self.average_temp = "unknown"
 
     def __repr__(self):
-        return '<Grainbin: name={0.id!r}>'.format(self)
+        """Represent the grainbin in a useful format."""
+        return f"<Grainbin name={self.id}"
 
 
 class Device(Model):
-    __tablename__ = 'device'
+    """Represent the Device."""
+
+    __tablename__ = "device"
     id = Column(String(20), primary_key=True)
     hardware_version = Column(String(20))
     software_version = Column(String(20))
@@ -48,13 +57,14 @@ class Device(Model):
 
     # grainbin related data
     grainbin_count = Column(Integer, default=0)
-    grainbins = relationship('Grainbin', backref='device')
+    grainbins = relationship("Grainbin", backref="device")
 
-    def __init__(self, id, interior_sensor='null',
-                 exterior_sensor='null'):
+    def __init__(self, id, interior_sensor="null", exterior_sensor="null"):
+        """Create the Device object."""
         self.id = id
         self.interior_sensor = interior_sensor
         self.exterior_sensor = exterior_sensor
 
     def __repr__(self):
-        return '<Device: id={0.id!r}>'.format(self)
+        """Represent the device in a useful format."""
+        return f"<Device: id={self.id}>"

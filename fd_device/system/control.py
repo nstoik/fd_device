@@ -1,3 +1,4 @@
+"""Set information for the system."""
 import logging
 import subprocess
 
@@ -9,27 +10,35 @@ from fd_device.device.temperature import get_connected_sensors
 
 from .info import get_device_name, getserial
 
-logger = logging.getLogger('fd.system.control')
+logger = logging.getLogger("fd.system.control")
 
 
 def set_device_name(name):
+    """Set the device name to the given name.
 
-    name = "hostname -b "+ name
+    TODO: change to hostnamectl command.
+    """
+
+    name = "hostname -b " + name
     subprocess.call(name)
     return
 
+
 def set_service_state(control):
+    """Set the service state.
+
+    TODO: implement this.
+    """
 
     raise NotImplementedError
 
 
 def set_sensor_info(interior, exterior):
-    """
-    there should be two 1W sensors connected directly to the device.
-    This gets the sensors and sets which one is interior and exterior
-    into the Hardware table.
-    input interior should be '1' or '2' and specifies which of the two sensors
-    is the interior one.
+    """Set the sensor details for the device.
+
+    There should be two 1W sensors connected directly to the device.
+    This gets the sensors and sets which one is interior and exterior into the Hardware table.
+    input interior should be '1' or '2' and specifies which of the two sensors is the interior one.
     """
 
     logger.debug("setting sensor info for device")
@@ -72,15 +81,17 @@ def set_sensor_info(interior, exterior):
 
 
 def set_hardware_info(hardware_version, gb_reader_count):
-    """
-    Set the hardware info into the HardwareDefinition table.
-    hardware_version is a string representing what revison of hardware
-    wifi_chip is the chip of the wifi adapter
+    """Set the hardware info into the HardwareDefinition table.
+
+    Hardware_version is a string representing what revison of hardware
     gb_reader_count is the number of 1Wire readerchips the FarmDevice has
     """
 
-    logger.debug("setting version: {0} grainbin_reader: {1}".format(hardware_version,
-                                                                    gb_reader_count))
+    logger.debug(
+        "setting version: {0} grainbin_reader: {1}".format(
+            hardware_version, gb_reader_count
+        )
+    )
     session = get_session()
 
     device_name = get_device_name()
@@ -105,8 +116,8 @@ def set_hardware_info(hardware_version, gb_reader_count):
 
 
 def set_software_info(software_version):
-    """
-    Set the software version info into the SoftwareDefinition table.
+    """Set the software version info into the SoftwareDefinition table.
+
     software_version is a string representing what revison of software
     """
     logger.debug("setting software version: {0}".format(software_version))

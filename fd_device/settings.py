@@ -1,22 +1,24 @@
+"""Application configuration."""
 import logging
 import os
 
 
 class CeleryConfig(object):
-    """ Celery configuration """
+    """Celery configuration."""
 
-    ## Broker settings.
-    broker_url = 'pyamqp://fm:farm_monitor@localhost/farm_monitor'
+    # Broker settings.
+    broker_url = "pyamqp://fm:farm_monitor@localhost/farm_monitor"
 
     # List of modules to import when the Celery worker starts.
     # imports = ('fm_server.device.tasks',)
 
-    ## Using the database to store task state and results.
-    result_backend = 'rpc://'
+    # Using the database to store task state and results.
+    result_backend = "rpc://"
 
-    broker_transport_options = {'confirm_publish': True}
+    broker_transport_options = {"confirm_publish": True}
 
     broker_pool_limit = 0
+
 
 class Config(object):
     """Base configuration."""
@@ -31,11 +33,11 @@ class Config(object):
 
     UPDATER_PATH = "/home/pi/farm_monitor/farm_update/update.sh"
 
-    SQLALCHEMY_DATABASE_URI = 'postgresql://fd:farm_device@fd_db/farm_device.db'
+    SQLALCHEMY_DATABASE_URI = "postgresql://fd:farm_device@fd_db/farm_device.db"
 
-    RABBITMQ_USER = 'fd'
-    RABBITMQ_PASSWORD = 'farm_monitor'
-    RABBITMQ_VHOST = 'farm_monitor'
+    RABBITMQ_USER = "fd"
+    RABBITMQ_PASSWORD = "farm_monitor"
+    RABBITMQ_VHOST = "farm_monitor"
 
 
 class DevConfig(Config):
@@ -58,7 +60,7 @@ class TestConfig(Config):
     DEBUG = True
     TESTING = True
 
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
 
 
 def get_config(override_default=None):

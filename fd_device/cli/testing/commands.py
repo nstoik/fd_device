@@ -73,7 +73,7 @@ def lint(fix_imports, check):
         "requirements",
         "migrations",
         "__pycache__",
-        "fm_device.egg-info",
+        "fd_device.egg-info",
         "build",
     ]
     root_files = glob("*.py")

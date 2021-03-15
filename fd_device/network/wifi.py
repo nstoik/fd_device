@@ -1,17 +1,13 @@
+"""Control the wifi connections of the device."""
 import logging
 import subprocess
-import time
 
 import netifaces
 from sqlalchemy.orm.exc import NoResultFound
 
 from fd_device.database.base import get_session
 from fd_device.database.system import Interface, Wifi
-from fd_device.network.ethernet import (
-    ethernet_connected,
-    get_external_interface,
-    get_interfaces,
-)
+from fd_device.network.ethernet import get_external_interface, get_interfaces
 from fd_device.network.network_files import (
     dhcpcd_file,
     dnsmasq_file,
@@ -22,13 +18,11 @@ from fd_device.network.network_files import (
 )
 from fd_device.settings import get_config
 
-logger = logging.getLogger('fd.network.wifi')
+logger = logging.getLogger("fd.network.wifi")
 
 
 def refresh_interfaces():
-    """
-    refresh all interfaces. Update with current information
-    """
+    """Refresh all interfaces. Update with current information."""
 
     session = get_session()
     ap_present = False
@@ -44,7 +38,7 @@ def refresh_interfaces():
 
             interface.is_active = True
             # see if there is an interface that is configured for an ap
-            if interface.state == 'ap':
+            if interface.state == "ap":
                 ap_present = True
 
         # must be a new interface so lets add it
@@ -52,7 +46,7 @@ def refresh_interfaces():
             new_interface = Interface(my_interface)
             new_interface.is_active = True
             new_interface.is_for_fm = False
-            new_interface.state = 'dhcp'
+            new_interface.state = "dhcp"
             session.add(new_interface)
 
     session.commit()
@@ -67,8 +61,8 @@ def refresh_interfaces():
 
 
 def scan_wifi(interface=None):
-    """
-    Scan the interface for the available wifi networks.
+    """Scan the interface for the available wifi networks.
+
     Returns a list of strings that are the found networks
     """
 
@@ -79,10 +73,10 @@ def scan_wifi(interface=None):
 
         interfaces = session.query(Interface).all()
         for x in interfaces:
-            if not x.interface.startswith('eth'):
-                if x.state == 'dhcp':
+            if not x.interface.startswith("eth"):
+                if x.state == "dhcp":
                     interface = x.interface
-        
+
         session.close()
 
     # exit if still no interface
@@ -91,16 +85,16 @@ def scan_wifi(interface=None):
         return []
 
     # scan the interface for networks
-    command = ['sudo', 'iwlist', interface, 'scan']
+    command = ["sudo", "iwlist", interface, "scan"]
     output = subprocess.check_output(command, universal_newlines=True)
     index = output.find('ESSID:"')
     ssid = []
     while index > 0:
         stop = output.find('"\n', index)
 
-        ssid.append(output[index + 7: stop])
+        ssid.append(output[index + 7 : stop])
 
-        output = output[stop + 2:]
+        output = output[stop + 2 :]
 
         index = output.find('ESSID:"')
 
@@ -108,9 +102,7 @@ def scan_wifi(interface=None):
 
 
 def add_wifi_network(wifi_name, wifi_password, interface=None):
-    """
-    Add a given wifi to the list of available wifi networks.
-    """
+    """Add a given wifi to the list of available wifi networks."""
 
     session = get_session()
 
@@ -118,10 +110,9 @@ def add_wifi_network(wifi_name, wifi_password, interface=None):
         interfaces = session.query(Interface).all()
         for x in interfaces:
             # find first available wlan interface that is not dhcp
-            if x.interface != 'eth0' and x.state == 'dhcp':
+            if x.interface != "eth0" and x.state == "dhcp":
                 interface = x.interface
                 break
-
 
     if interface is None:
         logger.error("No interface available to add new wifi network")
@@ -131,7 +122,7 @@ def add_wifi_network(wifi_name, wifi_password, interface=None):
     new_wifi = Wifi()
     new_wifi.wifi_name = wifi_name
     new_wifi.wifi_password = wifi_password
-    new_wifi.wifi_mode = 'dhcp'
+    new_wifi.wifi_mode = "dhcp"
     new_wifi.interface = interface
 
     session.add(new_wifi)
@@ -143,9 +134,7 @@ def add_wifi_network(wifi_name, wifi_password, interface=None):
 
 
 def delete_wifi_network(id):
-    """
-    Delete a wifi network given by 'id'
-    """
+    """Delete a wifi network given by 'id'."""
 
     session = get_session()
 
@@ -158,8 +147,8 @@ def delete_wifi_network(id):
 
 
 def wifi_info():
-    """
-    Get a list of wifi details for all wlan interfaces
+    """Get a list of wifi details for all wlan interfaces.
+
     For each interface, a dictionary of details is added to the list
     Keys of the dictionary are:
         interface: the interface
@@ -188,24 +177,24 @@ def wifi_info():
         try:
             info = {}
             interface = session.query(Interface).filter_by(interface=w_interface).one()
-            info['interface'] = interface
-            if interface.state == 'ap':
-                info['clients'] = wifi_ap_clients(interface.interface)
-                info['ssid'] = interface.credentials[0].wifi_name
-                info['password'] = interface.credentials[0].wifi_password
+            info["interface"] = interface
+            if interface.state == "ap":
+                info["clients"] = wifi_ap_clients(interface.interface)
+                info["ssid"] = interface.credentials[0].wifi_name
+                info["password"] = interface.credentials[0].wifi_password
             else:
-                info['state'] = wifi_dhcp_info(interface.interface)
-                if info['state'] is False:
-                    info['state_boolean'] = False
+                info["state"] = wifi_dhcp_info(interface.interface)
+                if info["state"] is False:
+                    info["state_boolean"] = False
                 else:
-                    info['state_boolean'] = True
+                    info["state_boolean"] = True
                     if w_interface in netifaces.interfaces():
                         address = netifaces.ifaddresses(w_interface)
-                        info['address'] = address[netifaces.AF_INET][0]['addr']
+                        info["address"] = address[netifaces.AF_INET][0]["addr"]
 
                 if interface.credentials:
-                    info['ssid'] = interface.credentials[0].wifi_name
-                    info['password'] = interface.credentials[0].wifi_password
+                    info["ssid"] = interface.credentials[0].wifi_name
+                    info["password"] = interface.credentials[0].wifi_password
 
             wifi.append(info)
 
@@ -217,12 +206,10 @@ def wifi_info():
 
 
 def wifi_ap_clients(interface):
-    """
-    Return the list of ap clients given an interface name
-    """
+    """Return the list of ap clients given an interface name."""
 
     logger.debug("getting wifi clients")
-    command = ['iw', 'dev', interface, 'station', 'dump']
+    command = ["iw", "dev", interface, "station", "dump"]
     client_info = subprocess.check_output(command, universal_newlines=True)
 
     client_count = client_info.count("Station")
@@ -231,29 +218,28 @@ def wifi_ap_clients(interface):
 
 
 def wifi_dhcp_info(interface):
-    """
-    Returns the SSID that is connected for a given interface name
-    else returns False
+    """Returns the SSID that is connected for a given interface name.
+
+    Else returns False.
     """
 
-    command = ['iw', interface, 'link']
+    command = ["iw", interface, "link"]
     output = subprocess.check_output(command, universal_newlines=True)
 
     if output.startswith("Not connected."):
         return False
 
     else:
-        start_index = output.find('SSID: ')
-        end_index = output.find('\n', start_index)
-        ssid = output[start_index + 6:end_index]
+        start_index = output.find("SSID: ")
+        end_index = output.find("\n", start_index)
+        ssid = output[start_index + 6 : end_index]
 
         return ssid
 
 
 def set_interfaces(interfaces):
-    """
-    Set interface information into database and configure hardware
-    accordingly
+    """Set interface information into database and configure hardware accordingly.
+
     interfaces is a list of dictionaries with required information
     """
 
@@ -262,17 +248,19 @@ def set_interfaces(interfaces):
 
     for interface in interfaces:
         try:
-            db_result = session.query(Interface).filter_by(interface=interface['name']).one()
+            db_result = (
+                session.query(Interface).filter_by(interface=interface["name"]).one()
+            )
         except NoResultFound:
-            db_result = Interface(interface['name'])
+            db_result = Interface(interface["name"])
             session.add(db_result)
         db_result.is_active = True
-        db_result.is_for_fm = interface['is_for_fm']
-        db_result.state = interface['state']
-        if interface['state'] == 'ap':
+        db_result.is_for_fm = interface["is_for_fm"]
+        db_result.state = interface["state"]
+        if interface["state"] == "ap":
             wifi_ap_present = True
-        if 'creds' in interface:
-            set_wifi_credentials(session, db_result, interface['creds'])
+        if "creds" in interface:
+            set_wifi_credentials(session, db_result, interface["creds"])
 
     session.commit()
 
@@ -284,41 +272,44 @@ def set_interfaces(interfaces):
     return
 
 
-# sets the wifi credentials information for a given interface
 def set_wifi_credentials(session, interface, wifi_creds):
+    """Sets the wifi credentials information for a given interface."""
 
-    logger.info("adding wifi. name: {0} password: {1} state: {2}".format(wifi_creds['ssid'],
-                                                                         wifi_creds['password'],
-                                                                         interface.state))
+    logger.info(
+        "adding wifi. name: {0} password: {1} state: {2}".format(
+            wifi_creds["ssid"], wifi_creds["password"], interface.state
+        )
+    )
 
     # see if the wifi credentials already exisit
     for credential in interface.credentials:
-        if credential.wifi_name == wifi_creds['ssid']:
-            logger.debug("ssid already exisits for {}. Updating.".format(interface.interface))
-            credential.wifi_password = wifi_creds['password']
+        if credential.wifi_name == wifi_creds["ssid"]:
+            logger.debug(
+                "ssid already exisits for {}. Updating.".format(interface.interface)
+            )
+            credential.wifi_password = wifi_creds["password"]
             credential.wifi_mode = interface.state
             return
 
     # else the wifi credentials do not exisit
     new_creds = Wifi()
     new_creds.interface = interface.interface
-    new_creds.wifi_name = wifi_creds['ssid']
-    new_creds.wifi_password = wifi_creds['password']
+    new_creds.wifi_name = wifi_creds["ssid"]
+    new_creds.wifi_password = wifi_creds["password"]
     new_creds.wifi_mode = interface.state
     session.add(new_creds)
     return
 
 
-# perform all of the setup and intialization work for interfaces
-# with an ap present
 def set_ap_mode():
+    """Perform the setup and intialization work for interfaces with an ap present."""
 
     logger.debug("setting wifi into ap mode")
     session = get_session()
 
     # get the wlan0 and wlan1 dhcp states
     try:
-        ap_interface = session.query(Interface).filter_by(state='ap').first()
+        ap_interface = session.query(Interface).filter_by(state="ap").first()
         ap_ssid = ap_interface.credentials[0].wifi_name
         ap_password = ap_interface.credentials[0].wifi_password
 
@@ -328,7 +319,7 @@ def set_ap_mode():
         return
 
     # get info for interface file
-    if ap_interface.interface == 'wlan0':
+    if ap_interface.interface == "wlan0":
         wlan0_dhcp = False
         wlan1_dhcp = True
 
@@ -337,12 +328,12 @@ def set_ap_mode():
         wlan1_dhcp = False
 
     # get the info for the wpa_supplicant file
-    wifi_defs = session.query(Wifi).filter(Wifi.wifi_mode != 'ap').all()
+    wifi_defs = session.query(Wifi).filter(Wifi.wifi_mode != "ap").all()
     networks = []
     for wifi in wifi_defs:
         new_network = {}
-        new_network['ssid'] = wifi.wifi_name
-        new_network['password'] = wifi.wifi_password
+        new_network["ssid"] = wifi.wifi_name
+        new_network["password"] = wifi.wifi_password
         networks.append(new_network)
 
     # get the information for the iptables_file
@@ -358,29 +349,28 @@ def set_ap_mode():
 
     config = get_config()
 
-    path = config.APP_DIR + '/network/ap_script.sh'
+    path = config.APP_DIR + "/network/ap_script.sh"
 
-    command = ['sudo', 'sh', path, ap_interface.interface]
+    command = ["sudo", "sh", path, ap_interface.interface]
     subprocess.check_call(command)
 
     session.close()
     return
 
 
-# perform all of the setup and intialization work for interfaces
-# with no ap present
 def set_wpa_mode():
+    """Perform the setup and intialization work for interfaces with no ap present."""
 
     logger.debug("setting all wlan into wpa mode")
     session = get_session()
 
     # get the info for the wpa_supplicant file
-    wifi_defs = session.query(Wifi).filter(Wifi.wifi_mode != 'ap').all()
+    wifi_defs = session.query(Wifi).filter(Wifi.wifi_mode != "ap").all()
     networks = []
     for wifi in wifi_defs:
         new_network = {}
-        new_network['ssid'] = wifi.wifi_name
-        new_network['password'] = wifi.wifi_password
+        new_network["ssid"] = wifi.wifi_name
+        new_network["password"] = wifi.wifi_password
         networks.append(new_network)
 
     iptables_file(None, None, flush_only=True)
@@ -389,9 +379,9 @@ def set_wpa_mode():
     dhcpcd_file()
 
     config = get_config()
-    path = config.APP_DIR + '/network/wpa_script.sh'
+    path = config.APP_DIR + "/network/wpa_script.sh"
 
-    command = ['sudo', 'sh', path]
+    command = ["sudo", "sh", path]
     subprocess.check_call(command)
     session.close()
     return

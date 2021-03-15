@@ -1,3 +1,4 @@
+"""The main module for the fd_device."""
 import logging
 import time
 from logging.handlers import RotatingFileHandler
@@ -13,17 +14,22 @@ from .tools.startup import get_rabbitmq_address
 
 
 def configure_logging(config):
+    """Configure the logging for the application."""
 
-    logger = logging.getLogger('fd')
+    logger = logging.getLogger("fd")
     logfile_path = config.LOG_FILE
     log_level = config.LOG_LEVEL
 
     logger.setLevel(log_level)
     logger.propagate = False
 
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
-    file_handler = RotatingFileHandler(logfile_path, mode='a', maxBytes=1024 * 1024, backupCount=10)
+    file_handler = RotatingFileHandler(
+        logfile_path, mode="a", maxBytes=1024 * 1024, backupCount=10
+    )
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
@@ -36,7 +42,9 @@ def configure_logging(config):
 
     return logger
 
+
 def main():
+    """The main loop of the application."""
 
     config = get_config()
     logger = configure_logging(config)
@@ -54,13 +62,13 @@ def main():
         device_connection.join()
     except KeyboardInterrupt:
         logger.warn("Keyboard interrupt in main process")
-        
+
         time.sleep(1)
         device_connection.terminate()
         device_connection.join()
 
     return
-    
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
