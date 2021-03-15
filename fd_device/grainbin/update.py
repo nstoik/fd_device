@@ -1,6 +1,7 @@
 from fd_device.database.base import get_session
 from fd_device.database.device import Grainbin
 
+
 def get_grainbin_info(session=None):
 
     close_session = False

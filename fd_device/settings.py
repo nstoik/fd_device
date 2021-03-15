@@ -1,5 +1,6 @@
-import os
 import logging
+import os
+
 
 class CeleryConfig(object):
     """ Celery configuration """

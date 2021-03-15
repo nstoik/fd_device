@@ -1,14 +1,14 @@
 """ device service package """
+import json
 import logging
 import time
 import uuid
-import json
 
 import pika
 
-from fd_device.settings import get_config
 from fd_device.database.base import get_session
 from fd_device.database.device import Connection, Device
+from fd_device.settings import get_config
 
 from .rabbitmq_messages import ReceiveMessages
 

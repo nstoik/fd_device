@@ -6,13 +6,19 @@ from alembic.config import Config as AlConfig
 from sqlalchemy.orm.exc import NoResultFound
 
 from fd_device.database.base import get_session
-from fd_device.database.system import SystemSetup, Hardware, Software
 from fd_device.database.device import Device, Grainbin
-from fd_device.settings import get_config
-from fd_device.system.control import set_device_name, set_hardware_info, set_sensor_info, set_software_info
+from fd_device.database.system import Hardware, Software, SystemSetup
 from fd_device.device.temperature import get_connected_sensors
 from fd_device.network.ethernet import get_interfaces
 from fd_device.network.wifi import set_interfaces
+from fd_device.settings import get_config
+from fd_device.system.control import (
+    set_device_name,
+    set_hardware_info,
+    set_sensor_info,
+    set_software_info,
+)
+
 
 @click.command()
 @click.option('--standalone', is_flag=True, prompt='Standalone configuration?', default=True, help='Is standalone setup or not')

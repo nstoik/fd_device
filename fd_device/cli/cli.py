@@ -1,9 +1,9 @@
 """Main command line interface entry point."""
 import click
 
-from .testing import commands as testing_commands
 from .db import commands as db_commands
 from .manage import commands as manage_commands
+from .testing import commands as testing_commands
 
 
 @click.group()

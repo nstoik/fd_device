@@ -1,8 +1,8 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean
-from sqlalchemy.sql import func
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
-from .database import Model, reference_col, SurrogatePK
+from .database import Model, SurrogatePK, reference_col
 
 
 class Connection(Model, SurrogatePK):

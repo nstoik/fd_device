@@ -1,12 +1,14 @@
-import socket
 import select
+import socket
+
 import requests
 from sqlalchemy.orm.exc import NoResultFound
 
-from fd_device.database.system import SystemSetup, Interface
 from fd_device.database.device import Connection
-from fd_device.system.info import get_ip_of_interface
+from fd_device.database.system import Interface, SystemSetup
 from fd_device.settings import get_config
+from fd_device.system.info import get_ip_of_interface
+
 
 def get_rabbitmq_address(logger, session):
 

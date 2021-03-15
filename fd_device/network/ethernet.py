@@ -1,6 +1,7 @@
-from netifaces import AF_INET
-import netifaces
 import logging
+
+import netifaces
+from netifaces import AF_INET
 
 from fd_device.database.base import get_session
 from fd_device.database.system import Interface

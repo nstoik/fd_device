@@ -7,8 +7,10 @@ from multiprocessing_logging import install_mp_handler
 
 from fd_device.database.base import get_session
 from fd_device.device.service import run_connection
+
 from .settings import get_config
 from .tools.startup import get_rabbitmq_address
+
 
 def configure_logging(config):
 

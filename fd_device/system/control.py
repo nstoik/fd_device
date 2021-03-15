@@ -1,10 +1,12 @@
-import subprocess
-from sqlalchemy.orm.exc import NoResultFound
 import logging
+import subprocess
+
+from sqlalchemy.orm.exc import NoResultFound
 
 from fd_device.database.base import get_session
 from fd_device.database.system import Hardware, Software
 from fd_device.device.temperature import get_connected_sensors
+
 from .info import get_device_name, getserial
 
 logger = logging.getLogger('fd.system.control')

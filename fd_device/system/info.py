@@ -1,10 +1,11 @@
-import subprocess
 import datetime
-import os
-import psutil
 import logging
-import netifaces
+import os
 import socket
+import subprocess
+
+import netifaces
+import psutil
 
 logger = logging.getLogger('fd.system.info')
 

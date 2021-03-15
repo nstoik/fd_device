@@ -5,6 +5,7 @@ from alembic.config import Config as AlConfig
 
 from fd_device.settings import get_config
 
+
 @click.command("create_tables")
 def create_tables():
     """
@@ -12,8 +13,8 @@ def create_tables():
     """
     click.echo("create database")
     from fd_device.database.base import create_all_tables
-    from fd_device.system import Hardware
     from fd_device.device import Device
+    from fd_device.system import Hardware
     create_all_tables()
     click.echo("done")
 

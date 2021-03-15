@@ -1,14 +1,25 @@
-import subprocess
 import logging
-import netifaces
+import subprocess
 import time
+
+import netifaces
 from sqlalchemy.orm.exc import NoResultFound
 
 from fd_device.database.base import get_session
-from fd_device.database.system import Wifi, Interface
-from fd_device.network.network_files import interface_file, dhcpcd_file, dnsmasq_file,\
-    hostapd_file, wpa_supplicant_file, iptables_file
-from fd_device.network.ethernet import get_interfaces, ethernet_connected, get_external_interface
+from fd_device.database.system import Interface, Wifi
+from fd_device.network.ethernet import (
+    ethernet_connected,
+    get_external_interface,
+    get_interfaces,
+)
+from fd_device.network.network_files import (
+    dhcpcd_file,
+    dnsmasq_file,
+    hostapd_file,
+    interface_file,
+    iptables_file,
+    wpa_supplicant_file,
+)
 from fd_device.settings import get_config
 
 logger = logging.getLogger('fd.network.wifi')
