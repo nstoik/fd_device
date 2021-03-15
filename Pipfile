@@ -5,7 +5,7 @@ name = "pypi"
 
 [dev-packages]
 # Testing
-factory-boy = "~=3.1.0"
+factory-boy = "~=3.2.0"
 pytest = "~=6.1.2"
 pytest-cov = "*"
 
@@ -27,13 +27,13 @@ pylint = "*"
 SQLAlchemy = "~=1.3.0"
 # for Postgresql
 psycopg2 = "~=2.8.6"
-alembic = "~=1.4.3"
+alembic = "~=1.5.7"
 gpiozero = "~=1.5.1"
 netifaces = "~=0.10.9"
 click = "~=7.1.2"
-psutil = "~=5.7.2"
-requests = "~=2.24.0"
-pika = "~=1.1.0"
+psutil = "~=5.8.0"
+requests = "~=2.25.1"
+pika = "~=1.2.0"
 celery = "~=5.0.0"
 multiprocessing-logging = "~=0.3.0"
 

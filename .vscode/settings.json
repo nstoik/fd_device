@@ -5,6 +5,7 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
+    "python.pythonPath": "/home/fd/.local/share/virtualenvs/fd_device-ruqM0lyT/bin/python",
     // line below used when connecting to a remote docker host.
     // https://code.visualstudio.com/docs/remote/containers-advanced#_developing-inside-a-container-on-a-remote-docker-host
     //"docker.host": "ssh://ubuntu@pi4-dev.home.stechsolutions.ca"
