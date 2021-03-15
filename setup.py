@@ -16,7 +16,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'fd_device = fd_device.manage:cli'
+            'fd_device = fd_device.cli.cli:entry_point'
         ]
     }
 )

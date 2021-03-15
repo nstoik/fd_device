@@ -37,7 +37,7 @@ services:
         - pgadmin:/root/.pgadmin
         - pgadmin:/var/lib/pgadmin
     ports:
-      - "5051:80"
+      - "5052:80"
     networks:
       - farm_device
     restart: unless-stopped
