@@ -53,7 +53,7 @@ class ProdConfig(Config):
     """Production configuration."""
 
     DEBUG = False
-    LOG_LEVEL = logging.ERROR
+    LOG_LEVEL = logging.INFO
 
 
 class TestConfig(Config):
@@ -62,6 +62,8 @@ class TestConfig(Config):
     DEBUG = True
     TESTING = True
 
+    # If encountering problems with session access, use a tmp file db instead
+    # SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/fd_device_test_db.sqlite"
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
 
 
