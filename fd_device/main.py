@@ -61,7 +61,7 @@ def main():
     try:
         device_connection.join()
     except KeyboardInterrupt:
-        logger.warn("Keyboard interrupt in main process")
+        logger.warning("Keyboard interrupt in main process")
 
         time.sleep(1)
         device_connection.terminate()

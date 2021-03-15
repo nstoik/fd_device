@@ -18,7 +18,7 @@ def get_device_info(session=None):
     info = {}
 
     info["created_at"] = datetime.datetime.now()
-    info["id"] = device.id
+    info["id"] = device.device_id
     info["hardware_version"] = device.hardware_version
     info["software_version"] = device.software_version
 

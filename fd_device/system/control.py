@@ -21,7 +21,6 @@ def set_device_name(name):
 
     name = "hostname -b " + name
     subprocess.call(name)
-    return
 
 
 def set_service_state(control):
@@ -60,8 +59,8 @@ def set_sensor_info(interior, exterior):
     except ValueError:
         pass
 
-    logger.debug("interior sensor is: {0}".format(int_sensor))
-    logger.debug("exterior sensor is: {0}".format(ext_sensor))
+    logger.debug(f"interior sensor is: {int_sensor}")
+    logger.debug(f"exterior sensor is: {ext_sensor}")
     # now set the sensor info into the tables
     session = get_session()
     try:
@@ -77,8 +76,6 @@ def set_sensor_info(interior, exterior):
     session.commit()
     session.close()
 
-    return
-
 
 def set_hardware_info(hardware_version, gb_reader_count):
     """Set the hardware info into the HardwareDefinition table.
@@ -88,9 +85,7 @@ def set_hardware_info(hardware_version, gb_reader_count):
     """
 
     logger.debug(
-        "setting version: {0} grainbin_reader: {1}".format(
-            hardware_version, gb_reader_count
-        )
+        f"setting version: {hardware_version} grainbin_reader: {gb_reader_count}"
     )
     session = get_session()
 
@@ -112,15 +107,13 @@ def set_hardware_info(hardware_version, gb_reader_count):
     session.commit()
     session.close()
 
-    return
-
 
 def set_software_info(software_version):
     """Set the software version info into the SoftwareDefinition table.
 
     software_version is a string representing what revison of software
     """
-    logger.debug("setting software version: {0}".format(software_version))
+    logger.debug(f"setting software version: {software_version}")
     session = get_session()
 
     try:
@@ -134,5 +127,3 @@ def set_software_info(software_version):
 
     session.commit()
     session.close()
-
-    return

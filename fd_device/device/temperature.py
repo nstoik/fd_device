@@ -13,8 +13,7 @@ def temperature(sensor_name, sample_number=3, percision=2):
     if len(temp_values) > 0:
         return round(sum(temp_values) / len(temp_values), percision)
 
-    else:
-        return "U"
+    return "U"
 
 
 def _read_temperature(name):
@@ -59,8 +58,7 @@ def get_connected_sensors(values=False):
             values[sensor] = temp
         return values
 
-    else:
-        return content
+    return content
 
 
 if __name__ == "__main__":

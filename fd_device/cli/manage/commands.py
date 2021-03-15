@@ -31,6 +31,7 @@ from fd_device.system.control import (
 )
 def first_setup(standalone):  # noqa: C901
     """First time setup. Load required data."""
+    # pylint: disable=too-many-statements,too-many-locals
     click.echo("first time setup")
 
     session = get_session()
@@ -168,7 +169,7 @@ def initialize_device():
         device = session.query(Device).one()
     except NoResultFound:
         device = Device(
-            id=hd.serial_number,
+            device_id=hd.serial_number,
             interior_sensor=hd.interior_sensor,
             exterior_sensor=hd.exterior_sensor,
         )
@@ -180,7 +181,7 @@ def initialize_device():
     device.exterior_sensor = hd.exterior_sensor
 
     # set grainbin info
-    grainbins = initialize_grainbin(device.id, hd.grainbin_reader_count)
+    grainbins = initialize_grainbin(device.device_id, hd.grainbin_reader_count)
     for grainbin in grainbins:
         session.merge(grainbin)
     device.grainbin_count = len(grainbins)
@@ -199,8 +200,8 @@ def initialize_grainbin(device_id, grainbin_reader_count):
 
     grainbins = []
     for bus_number in range(grainbin_reader_count):
-        id = device_id + "." + str(bus_number).zfill(2)
-        grainbin = Grainbin(id, bus_number, device_id)
+        name = device_id + "." + str(bus_number).zfill(2)
+        grainbin = Grainbin(name, bus_number, device_id)
         grainbins.append(grainbin)
 
     return grainbins

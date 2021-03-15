@@ -58,8 +58,6 @@ def hostapd_file(interface, wifi_ssid, wifi_password):
     command = ["sudo", "mv", "/tmp/hostapd_temp", "/etc/hostapd/hostapd.conf"]
     subprocess.check_call(command)
 
-    return
-
 
 def interface_file(wlan0_dhcp=True, wlan1_dhcp=True):
     """Create an interfaces file at /etc/network/interface."""
@@ -116,8 +114,6 @@ def interface_file(wlan0_dhcp=True, wlan1_dhcp=True):
 
     command = ["sudo", "mv", "/tmp/interface_temp", "/etc/network/interfaces"]
     subprocess.check_call(command)
-
-    return
 
 
 def iptables_file(external_interface, internal_interface, flush_only=False):
@@ -184,8 +180,6 @@ def iptables_file(external_interface, internal_interface, flush_only=False):
     command = ["sudo", "mv", "/tmp/iptables.ipv4.nat", "/etc/iptables.ipv4.nat"]
     subprocess.check_call(command)
 
-    return
-
 
 def dnsmasq_file(interface):
     """Create a dnsmasq file at '/etc/dnsmasq.conf'."""
@@ -205,8 +199,6 @@ def dnsmasq_file(interface):
 
     command = ["sudo", "mv", "/tmp/dnsmasq_temp", "/etc/dnsmasq.conf"]
     subprocess.check_call(command)
-
-    return
 
 
 def dhcpcd_file(interface=None):
@@ -255,8 +247,6 @@ def dhcpcd_file(interface=None):
     command = ["sudo", "mv", "/tmp/dhcpcd_temp", "/etc/dhcpcd.conf"]
     subprocess.check_call(command)
 
-    return
-
 
 def wpa_supplicant_file(networks):
     """Create a wpa supplicant file at '/etc/wpa_supplicant/wpa_supplicant.conf'.
@@ -300,5 +290,3 @@ def wpa_supplicant_file(networks):
         "/etc/wpa_supplicant/wpa_supplicant.conf",
     ]
     subprocess.check_call(command)
-
-    return

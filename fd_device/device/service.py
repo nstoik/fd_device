@@ -14,7 +14,7 @@ from .rabbitmq_messages import ReceiveMessages
 LOGGER = logging.getLogger("fd.device.service")
 
 
-class DeviceConnection:
+class DeviceConnection:  # pylint: disable=too-many-instance-attributes
     """Connect to server via RabbitMQ."""
 
     def __init__(self):
@@ -30,6 +30,11 @@ class DeviceConnection:
         self._closing = False
         self._session = None
 
+        self._deliveries = []
+        self._acked = 0
+        self._nacked = 0
+        self._message_number = 0
+
         # retrieve variables from config and database
         config = get_config()
         self._session = get_session()
@@ -41,8 +46,6 @@ class DeviceConnection:
         self._host = host
         self._port = 5672
         self._virtual_host = config.RABBITMQ_VHOST
-
-        return
 
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
@@ -153,7 +156,7 @@ class DeviceConnection:
         LOGGER.debug("Adding channel close callback")
         self._channel.add_on_close_callback(self.on_channel_closed)
 
-    def on_channel_closed(self, channel, reason):
+    def on_channel_closed(self, _channel, reason):
         """Invoked by pika when RabbitMQ unexpectedly closes the channel.
 
         Channels are usually closed if you attempt to do something that
@@ -206,7 +209,7 @@ class DeviceConnection:
         LOGGER.info("Stopped")
 
 
-class Heartbeat:
+class Heartbeat:  # pylint: disable=too-many-instance-attributes
     """A heartbeat connection to the server."""
 
     HEARTBEAT_INTERVAL = 5
@@ -233,7 +236,7 @@ class Heartbeat:
         self._timeouts_missed = 0
         self._session = session
 
-        device_id = self._session.query(Device.id).scalar()
+        device_id = self._session.query(Device.device_id).scalar()
 
         # communication parameters
         self.exchange_name = "heartbeat_events"
@@ -399,7 +402,7 @@ class Heartbeat:
 
         self._connection.ioloop.call_later(self.TIMEOUT, self.check_timeout)
 
-    def on_reply_received(self, channel, method, header, body):
+    def on_reply_received(self, _channel, _method, header, _body):
         """Method is triggered when a reply is received."""
         if self._corr_id == header.correlation_id:
             self._response = True
@@ -415,7 +418,7 @@ class Heartbeat:
             self.LOGGER.debug("Heartbeat timeout")
 
         if self._timeouts_missed == self.MAX_MISSED_TIMEOUTS + 1:
-            self.LOGGER.warn(
+            self.LOGGER.warning(
                 f"More than {self.MAX_MISSED_TIMEOUTS} timeouts missed. STATE disconnected"
             )
             self.STATE = "disconnected"

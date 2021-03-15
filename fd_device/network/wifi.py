@@ -57,8 +57,6 @@ def refresh_interfaces():
     else:
         set_wpa_mode()
 
-    return
-
 
 def scan_wifi(interface=None):
     """Scan the interface for the available wifi networks.
@@ -81,7 +79,7 @@ def scan_wifi(interface=None):
 
     # exit if still no interface
     if interface is None:
-        logger.warn("No interface available to scan wifi networks")
+        logger.warning("No interface available to scan wifi networks")
         return []
 
     # scan the interface for networks
@@ -133,17 +131,15 @@ def add_wifi_network(wifi_name, wifi_password, interface=None):
     return new_wifi
 
 
-def delete_wifi_network(id):
+def delete_wifi_network(network_id):
     """Delete a wifi network given by 'id'."""
 
     session = get_session()
 
-    session.query(Wifi).filter_by(id=id).delete()
+    session.query(Wifi).filter_by(id=network_id).delete()
     session.commit()
 
     session.close()
-
-    return
 
 
 def wifi_info():
@@ -229,12 +225,11 @@ def wifi_dhcp_info(interface):
     if output.startswith("Not connected."):
         return False
 
-    else:
-        start_index = output.find("SSID: ")
-        end_index = output.find("\n", start_index)
-        ssid = output[start_index + 6 : end_index]
+    start_index = output.find("SSID: ")
+    end_index = output.find("\n", start_index)
+    ssid = output[start_index + 6 : end_index]
 
-        return ssid
+    return ssid
 
 
 def set_interfaces(interfaces):
@@ -269,24 +264,18 @@ def set_interfaces(interfaces):
     else:
         set_wpa_mode()
 
-    return
-
 
 def set_wifi_credentials(session, interface, wifi_creds):
     """Sets the wifi credentials information for a given interface."""
 
     logger.info(
-        "adding wifi. name: {0} password: {1} state: {2}".format(
-            wifi_creds["ssid"], wifi_creds["password"], interface.state
-        )
+        f"adding wifi. name: {wifi_creds['ssid']} password: {wifi_creds['password']} state: {interface.state}"
     )
 
     # see if the wifi credentials already exisit
     for credential in interface.credentials:
         if credential.wifi_name == wifi_creds["ssid"]:
-            logger.debug(
-                "ssid already exisits for {}. Updating.".format(interface.interface)
-            )
+            logger.debug(f"ssid already exisits for {interface.interface}. Updating.")
             credential.wifi_password = wifi_creds["password"]
             credential.wifi_mode = interface.state
             return
@@ -298,7 +287,6 @@ def set_wifi_credentials(session, interface, wifi_creds):
     new_creds.wifi_password = wifi_creds["password"]
     new_creds.wifi_mode = interface.state
     session.add(new_creds)
-    return
 
 
 def set_ap_mode():
@@ -315,7 +303,7 @@ def set_ap_mode():
 
     except NoResultFound:
         # error. abort
-        logger.warn("No interface with state set to 'ap'. Aborting")
+        logger.warning("No interface with state set to 'ap'. Aborting")
         return
 
     # get info for interface file
@@ -355,7 +343,6 @@ def set_ap_mode():
     subprocess.check_call(command)
 
     session.close()
-    return
 
 
 def set_wpa_mode():
@@ -384,4 +371,3 @@ def set_wpa_mode():
     command = ["sudo", "sh", path]
     subprocess.check_call(command)
     session.close()
-    return

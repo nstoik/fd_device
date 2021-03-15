@@ -76,12 +76,11 @@ def get_rabbitmq_address(logger, session):  # noqa: C901
                     connection.address = addrinfo[0]
                     session.commit()
                     return True
-                else:
-                    logger.debug(
-                        "Reply from {}:{}, but no rabbitmq server present".format(
-                            addrinfo[0], addrinfo[1]
-                        )
+                logger.debug(
+                    "Reply from {}:{}, but no rabbitmq server present".format(
+                        addrinfo[0], addrinfo[1]
                     )
+                )
 
             else:
                 logger.debug("No broadcast from FarmMonitor yet")
@@ -104,10 +103,10 @@ def check_rabbitmq_address(logger, address):
     logger.debug(f"testing connection to: {url} with auth {user} - {password}")
 
     try:
-        r = requests.get(url, auth=(user, password))
+        request_result = requests.get(url, auth=(user, password))
 
-        if r.status_code == requests.codes.ok:
-            data = r.json()
+        if request_result.status_code == requests.codes.ok:
+            data = request_result.json()
             if data["status"] == "ok":
                 logger.debug(f"the url: {url} was succesfull")
                 return True

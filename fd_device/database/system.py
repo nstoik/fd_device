@@ -3,10 +3,10 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from .database import Model, SurrogatePK, reference_col
+from .database import SurrogatePK, reference_col
 
 
-class SystemSetup(Model, SurrogatePK):
+class SystemSetup(SurrogatePK):
     """The state of the setup of the system."""
 
     __tablename__ = "system_setup"
@@ -20,7 +20,7 @@ class SystemSetup(Model, SurrogatePK):
         return
 
 
-class Wifi(Model, SurrogatePK):
+class Wifi(SurrogatePK):
     """The wifi connections of the device."""
 
     __tablename__ = "system_wifi"
@@ -36,7 +36,7 @@ class Wifi(Model, SurrogatePK):
         return
 
 
-class Interface(Model):
+class Interface(SurrogatePK):
     """The interface connections of the device."""
 
     __tablename__ = "system_interface"
@@ -53,10 +53,9 @@ class Interface(Model):
         """Create the interface object."""
 
         self.interface = interface
-        return
 
 
-class Hardware(Model, SurrogatePK):
+class Hardware(SurrogatePK):
     """The hardware representation of the device."""
 
     __tablename__ = "system_hardware"
@@ -75,7 +74,7 @@ class Hardware(Model, SurrogatePK):
         return
 
 
-class Software(Model, SurrogatePK):
+class Software(SurrogatePK):
     """The software representation of the device."""
 
     __tablename__ = "system_software"

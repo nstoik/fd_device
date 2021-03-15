@@ -20,7 +20,7 @@ class CRUDMixin:
         """Update specific fields of a record."""
         for attr, value in kwargs.items():
             setattr(self, attr, value)
-        return commit and self.save(session) or self
+        return self.save(session) if commit else self
 
     def save(self, session, commit=True):
         """Save the record."""
@@ -43,10 +43,11 @@ class Model(CRUDMixin, Base):  # type: ignore[valid-type, misc]
 
 # From Mike Bayer's "Building the app" talk
 # https://speakerdeck.com/zzzeek/building-the-app
-class SurrogatePK(object):
+class SurrogatePK(Model):  # pylint: disable=too-few-public-methods
     """A mixin that adds a surrogate integer 'primary key' column named ``id`` to any declarative-mapped class."""
 
     __table_args__ = {"extend_existing": True}
+    __abstract__ = True
 
     id = Column(Integer, primary_key=True)
 
@@ -60,9 +61,9 @@ class SurrogatePK(object):
             ),
         ):
             if session:
-                return session.query.get(int(record_id))
-            else:
-                return cls.query.get(int(record_id))
+                return session.query(cls).get(int(record_id))
+
+            return cls.query.get(int(record_id))
         return None
 
 

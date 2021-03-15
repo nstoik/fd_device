@@ -54,7 +54,7 @@ def get_cpu_temperature():
 
 def get_service_status():
     """Return the status of the service."""
-
+    # pylint: disable=unreachable
     raise NotImplementedError
 
     logger.debug("getting service status")
@@ -65,10 +65,7 @@ def get_service_status():
     except subprocess.CalledProcessError:
         pass
 
-    if status.startswith("active"):
-        return True
-    else:
-        return False
+    return bool(status.startswith("active"))
 
 
 def get_device_name():
