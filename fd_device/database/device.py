@@ -20,7 +20,7 @@ class Grainbin(SurrogatePK):
     """Represent a Grainbin that is connected to the device."""
 
     __tablename__ = "grainbin"
-    name = Column(String(20), primary_key=True)
+    name = Column(String(20), unique=True)
     bus_number = Column(Integer, nullable=False)
     creation_time = Column(DateTime, default=func.now())
     last_updated = Column(DateTime, onupdate=func.now())
@@ -44,7 +44,7 @@ class Device(SurrogatePK):
     """Represent the Device."""
 
     __tablename__ = "device"
-    device_id = Column(String(20), primary_key=True)
+    device_id = Column(String(20), unique=True)
     hardware_version = Column(String(20))
     software_version = Column(String(20))
     creation_time = Column(DateTime, default=func.now())
@@ -67,4 +67,4 @@ class Device(SurrogatePK):
 
     def __repr__(self):
         """Represent the device in a useful format."""
-        return f"<Device: id={self.device_id}>"
+        return f"<Device: device_id={self.device_id}>"

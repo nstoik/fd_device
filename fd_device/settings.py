@@ -62,9 +62,7 @@ class TestConfig(Config):
     DEBUG = True
     TESTING = True
 
-    # If encountering problems with session access, use a tmp file db instead
-    # SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/fd_device_test_db.sqlite"
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/fd_device_test_db.sqlite"
 
 
 def get_config(override_default=None):
