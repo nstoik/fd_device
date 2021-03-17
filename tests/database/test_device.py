@@ -3,9 +3,9 @@ import datetime as dt
 
 import pytest
 
-from fd_device.database.device import Connection, Device
+from fd_device.database.device import Connection, Device, Grainbin
 
-from .factories import DeviceFactory
+from .factories import DeviceFactory, GrainbinFactory
 
 
 @pytest.mark.usefixtures("tables")
@@ -92,3 +92,60 @@ class TestDevice:
         assert device.exterior_temp is None
         assert device.grainbin_count == 0
         assert device.grainbins == []
+
+
+@pytest.mark.usefixtures("tables")
+class TestGrainbin:
+    """Grainbin model tests."""
+
+    @staticmethod
+    def test_create_grainbin(dbsession):
+        """Create a grainbin instance."""
+        device = DeviceFactory.create(dbsession)
+        device.save(dbsession)
+
+        grainbin = Grainbin(name="TestGrainbin", bus_number=1, device_id=device.id)
+        grainbin.save(dbsession)
+
+        assert grainbin.device_id == device.id
+        assert grainbin.bus_number == 1
+
+    @staticmethod
+    def test_get_grainbin_by_id(dbsession):
+        """Test retrieving a grainbin by its ID."""
+        device = DeviceFactory.create(dbsession)
+        device.save(dbsession)
+
+        grainbin = Grainbin(name="TestGrainbin", bus_number=1, device_id=device.id)
+        grainbin.save(dbsession)
+
+        retrieved = Grainbin.get_by_id(grainbin.id)
+
+        assert grainbin.id == retrieved.id
+
+    @staticmethod
+    def test_grainbin_factory(dbsession):
+        """Test GrainbinFactory."""
+
+        grainbin = GrainbinFactory.create(dbsession)
+        grainbin.save(dbsession)
+
+        retrieved = Grainbin.get_by_id(grainbin.id)
+        device = Device.get_by_id(grainbin.device_id)
+
+        assert grainbin.id == retrieved.id
+        assert isinstance(grainbin.device_id, int)
+        assert isinstance(device, Device)
+
+    @staticmethod
+    def test_grainbin_properies(dbsession):
+        """Test all Grainbin properties."""
+
+        grainbin = GrainbinFactory.create(dbsession)
+        grainbin.save(dbsession)
+
+        assert grainbin.name.startswith("Test Grainbin")
+        assert isinstance(grainbin.bus_number, int)
+        assert isinstance(grainbin.creation_time, dt.datetime)
+        assert isinstance(grainbin.last_updated, dt.datetime)
+        assert grainbin.average_temp == "unknown"
