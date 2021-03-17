@@ -11,8 +11,12 @@ from fd_device.database.device import Device  # noqa: F401
 from fd_device.database.system import Hardware  # noqa: F401
 from fd_device.settings import get_config
 
+@click.group()
+def database():
+    """Command group for database commands."""
 
-@click.command("create_tables")
+
+@database.command("create_tables")
 def create_tables():
     """Create all database tables for first time setup."""
     click.echo("creating all tables")
@@ -27,7 +31,7 @@ def create_tables():
     click.echo("done")
 
 
-@click.command("create_revision")
+@database.command("create_revision")
 @click.option(
     "--message",
     prompt="Provide a message for the revision",
@@ -43,7 +47,7 @@ def create_revision(message):
     al_command.revision(alembic_cnf, message=message, autogenerate=True)
 
 
-@click.command("database_upgrade")
+@database.command("database_upgrade")
 @click.option(
     "--revision",
     default="head",

@@ -16,6 +16,4 @@ entry_point.add_command(manage_commands.first_setup)
 entry_point.add_command(testing_commands.test)
 entry_point.add_command(testing_commands.lint)
 
-entry_point.add_command(db_commands.create_tables)
-entry_point.add_command(db_commands.create_revision)
-entry_point.add_command(db_commands.database_upgrade)
+entry_point.add_command(db_commands.database)
