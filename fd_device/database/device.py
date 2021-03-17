@@ -23,7 +23,7 @@ class Grainbin(SurrogatePK):
     name = Column(String(20), unique=True)
     bus_number = Column(Integer, nullable=False)
     creation_time = Column(DateTime, default=func.now())
-    last_updated = Column(DateTime, onupdate=func.now())
+    last_updated = Column(DateTime, default=func.now(), onupdate=func.now())
     average_temp = Column(String(7))
 
     device_id = reference_col("device")

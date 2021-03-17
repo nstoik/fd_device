@@ -118,9 +118,9 @@ def add_wifi_network(wifi_name, wifi_password, interface=None):
 
     # have an interface. now create a Wifi entry
     new_wifi = Wifi()
-    new_wifi.wifi_name = wifi_name
-    new_wifi.wifi_password = wifi_password
-    new_wifi.wifi_mode = "dhcp"
+    new_wifi.name = wifi_name
+    new_wifi.password = wifi_password
+    new_wifi.mode = "dhcp"
     new_wifi.interface = interface
 
     session.add(new_wifi)
@@ -176,8 +176,8 @@ def wifi_info():
             info["interface"] = interface
             if interface.state == "ap":
                 info["clients"] = wifi_ap_clients(interface.interface)
-                info["ssid"] = interface.credentials[0].wifi_name
-                info["password"] = interface.credentials[0].wifi_password
+                info["ssid"] = interface.credentials[0].name
+                info["password"] = interface.credentials[0].password
             else:
                 info["state"] = wifi_dhcp_info(interface.interface)
                 if info["state"] is False:
@@ -189,8 +189,8 @@ def wifi_info():
                         info["address"] = address[netifaces.AF_INET][0]["addr"]
 
                 if interface.credentials:
-                    info["ssid"] = interface.credentials[0].wifi_name
-                    info["password"] = interface.credentials[0].wifi_password
+                    info["ssid"] = interface.credentials[0].name
+                    info["password"] = interface.credentials[0].password
 
             wifi.append(info)
 
@@ -274,18 +274,18 @@ def set_wifi_credentials(session, interface, wifi_creds):
 
     # see if the wifi credentials already exisit
     for credential in interface.credentials:
-        if credential.wifi_name == wifi_creds["ssid"]:
+        if credential.name == wifi_creds["ssid"]:
             logger.debug(f"ssid already exisits for {interface.interface}. Updating.")
-            credential.wifi_password = wifi_creds["password"]
-            credential.wifi_mode = interface.state
+            credential.password = wifi_creds["password"]
+            credential.mode = interface.state
             return
 
     # else the wifi credentials do not exisit
     new_creds = Wifi()
     new_creds.interface = interface.interface
-    new_creds.wifi_name = wifi_creds["ssid"]
-    new_creds.wifi_password = wifi_creds["password"]
-    new_creds.wifi_mode = interface.state
+    new_creds.name = wifi_creds["ssid"]
+    new_creds.password = wifi_creds["password"]
+    new_creds.mode = interface.state
     session.add(new_creds)
 
 
@@ -298,8 +298,8 @@ def set_ap_mode():
     # get the wlan0 and wlan1 dhcp states
     try:
         ap_interface = session.query(Interface).filter_by(state="ap").first()
-        ap_ssid = ap_interface.credentials[0].wifi_name
-        ap_password = ap_interface.credentials[0].wifi_password
+        ap_ssid = ap_interface.credentials[0].name
+        ap_password = ap_interface.credentials[0].password
 
     except NoResultFound:
         # error. abort
@@ -316,12 +316,12 @@ def set_ap_mode():
         wlan1_dhcp = False
 
     # get the info for the wpa_supplicant file
-    wifi_defs = session.query(Wifi).filter(Wifi.wifi_mode != "ap").all()
+    wifi_defs = session.query(Wifi).filter(Wifi.mode != "ap").all()
     networks = []
     for wifi in wifi_defs:
         new_network = {}
-        new_network["ssid"] = wifi.wifi_name
-        new_network["password"] = wifi.wifi_password
+        new_network["ssid"] = wifi.name
+        new_network["password"] = wifi.password
         networks.append(new_network)
 
     # get the information for the iptables_file
@@ -352,12 +352,12 @@ def set_wpa_mode():
     session = get_session()
 
     # get the info for the wpa_supplicant file
-    wifi_defs = session.query(Wifi).filter(Wifi.wifi_mode != "ap").all()
+    wifi_defs = session.query(Wifi).filter(Wifi.mode != "ap").all()
     networks = []
     for wifi in wifi_defs:
         new_network = {}
-        new_network["ssid"] = wifi.wifi_name
-        new_network["password"] = wifi.wifi_password
+        new_network["ssid"] = wifi.name
+        new_network["password"] = wifi.password
         networks.append(new_network)
 
     iptables_file(None, None, flush_only=True)

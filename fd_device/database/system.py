@@ -25,11 +25,12 @@ class Wifi(SurrogatePK):
 
     __tablename__ = "system_wifi"
 
-    wifi_name = Column(String(20), default="FarmMonitor")
-    wifi_password = Column(String(20), default="raspberry")
-    wifi_mode = Column(String(20), default="wpa")
+    name = Column(String(20), default="FarmMonitor")
+    password = Column(String(20), default="raspberry")
+    mode = Column(String(20), default="wpa")
 
-    interface = reference_col("system_interface", pk_name="interface")
+    interface_id = reference_col("system_interface", nullable=True)
+    interface = relationship("Interface", backref="credentials")
 
     def __init__(self):
         """Create the Wifi object."""
@@ -41,13 +42,11 @@ class Interface(SurrogatePK):
 
     __tablename__ = "system_interface"
 
-    interface = Column(String(5), primary_key=True)
+    interface = Column(String(5), nullable=True)
     is_active = Column(Boolean, default=True)
     is_for_fm = Column(Boolean, default=False)
     is_external = Column(Boolean, default=False)
     state = Column(String(20))
-
-    credentials = relationship("Wifi")
 
     def __init__(self, interface):
         """Create the interface object."""
@@ -80,6 +79,7 @@ class Software(SurrogatePK):
     __tablename__ = "system_software"
 
     software_version = Column(String(20))
+    software_version_last = Column(String(20))
 
     def __init__(self):
         """Create the Software object."""
