@@ -41,7 +41,7 @@ def create_revision(message):
     """Create a database migration using alembic."""
 
     config = get_config()
-    alembic_cnf = AlConfig(config.PROJECT_ROOT + "/alembic.ini")
+    alembic_cnf = AlConfig(config.PROJECT_ROOT + "/migrations/alembic.ini")
     alembic_cnf.set_main_option("script_location", config.PROJECT_ROOT + "/migrations")
 
     al_command.revision(alembic_cnf, message=message, autogenerate=True)
@@ -58,7 +58,7 @@ def database_upgrade(revision):
     """Upgrade database to given revision."""
 
     config = get_config()
-    alembic_cnf = AlConfig(config.PROJECT_ROOT + "/alembic.ini")
+    alembic_cnf = AlConfig(config.PROJECT_ROOT + "/migrations/alembic.ini")
     alembic_cnf.set_main_option("script_location", config.PROJECT_ROOT + "/migrations")
 
     al_command.upgrade(alembic_cnf, revision)
