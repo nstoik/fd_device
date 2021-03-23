@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dcf50b7d4f8ec7b6fc4639a59c3c45ff5f7b94804e959010509c3cf01de76372"
+            "sha256": "eaf2b982e7ee79c50f6121a045be4f1ba8627054f8d31f4ce26393bd3c03bde9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -97,11 +97,11 @@
         },
         "gpiozero": {
             "hashes": [
-                "sha256:05dc40f7bceeb9d37c2efe6c5ae1b886725ef9b056e3a5a90d07b7fc0fed3a86",
-                "sha256:8b6c11e0d351c395cc256aff19cae23e7f7759a6164254a791c82877e3fcc5ef"
+                "sha256:0eb95a9db372146813276f92de7f43c883a3e9fe69597fc3d29c04ef3d5d5f9e",
+                "sha256:9af00b90d4fa775aa1fc023363e4aa5539844a5b0c461be5ced5cfabba364d99"
             ],
             "index": "pypi",
-            "version": "==1.6.0"
+            "version": "==1.6.2"
         },
         "greenlet": {
             "hashes": [
@@ -610,11 +610,11 @@
         },
         "gpiozero": {
             "hashes": [
-                "sha256:05dc40f7bceeb9d37c2efe6c5ae1b886725ef9b056e3a5a90d07b7fc0fed3a86",
-                "sha256:8b6c11e0d351c395cc256aff19cae23e7f7759a6164254a791c82877e3fcc5ef"
+                "sha256:0eb95a9db372146813276f92de7f43c883a3e9fe69597fc3d29c04ef3d5d5f9e",
+                "sha256:9af00b90d4fa775aa1fc023363e4aa5539844a5b0c461be5ced5cfabba364d99"
             ],
             "index": "pypi",
-            "version": "==1.6.0"
+            "version": "==1.6.2"
         },
         "greenlet": {
             "hashes": [
