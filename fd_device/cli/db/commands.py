@@ -11,6 +11,7 @@ from fd_device.database.device import Device  # noqa: F401
 from fd_device.database.system import Hardware  # noqa: F401
 from fd_device.settings import get_config
 
+
 @click.group()
 def database():
     """Command group for database commands."""
