@@ -24,7 +24,7 @@ pylint = "*"
 "e1839a8" = {path = ".", editable = true}
 
 [packages]
-SQLAlchemy = "~=1.4.0"
+SQLAlchemy = "~=1.4.2"
 # for Postgresql
 psycopg2 = "~=2.8.6"
 alembic = "~=1.5.7"
