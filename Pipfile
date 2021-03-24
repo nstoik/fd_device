@@ -27,7 +27,7 @@ pylint = "*"
 SQLAlchemy = "~=1.4.2"
 # for Postgresql
 psycopg2 = "~=2.8.6"
-alembic = "~=1.5.7"
+alembic = "~=1.5.8"
 gpiozero = "~=1.6.2"
 netifaces = "~=0.10.9"
 click = "~=7.1.2"
