@@ -345,8 +345,8 @@ class Heartbeat:  # pylint: disable=too-many-instance-attributes
         self.LOGGER.debug(
             (
                 f"Published {self._message_number} messages, "
-                "{len(self._deliveries)} to be confirmed, "
-                "{self._acked} were acked and {self._nacked} were nacked"
+                f"{len(self._deliveries)} to be confirmed, "
+                f"{self._acked} were acked and {self._nacked} were nacked"
             )
         )
 
