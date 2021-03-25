@@ -2,7 +2,8 @@
 import select
 import socket
 
-import requests
+import pika
+from pika.exceptions import AMQPConnectionError
 from sqlalchemy.orm.exc import NoResultFound
 
 from fd_device.database.device import Connection
@@ -11,11 +12,8 @@ from fd_device.settings import get_config
 from fd_device.system.info import get_ip_of_interface
 
 
-def get_rabbitmq_address(logger, session):  # noqa: C901
+def get_rabbitmq_address(logger, session):
     """Find and return the address of the RabbitMQ server to connect to."""
-
-    config = get_config()
-    presence_port = config.PRESENCE_PORT
 
     try:
         connection = session.query(Connection).one()
@@ -30,24 +28,42 @@ def get_rabbitmq_address(logger, session):  # noqa: C901
             logger.info("previously used rabbitmq address is still valid")
             return True
 
-    # try to connect to dns name fm_rabbitmq. For example if farm_monitor and farm_device are on the same network
-    try:
-        address = socket.gethostbyname("fm_rabbitmq")
-        if check_rabbitmq_address(logger, address):
-            logger.info("'fm_rabbitmq' host was found and the url was valid")
-            connection.address = address
-            session.commit()
-            return True
+    possible_addresses = ["fm_rabbitmq", "host.docker.internal", "localhost"]
 
-    except socket.gaierror:
-        # name not known, so carry on to the next step
-        logger.debug("'fm_rabbitmq' host was not found")
+    for address in possible_addresses:
+        logger.debug(f"testing address: {address}")
+        try:
+            address = socket.gethostbyname(address)
+            if check_rabbitmq_address(logger, address):
+                logger.info(f"'{address}' host was found and the url was valid")
+                connection.address = address
+                session.commit()
+                return True
+
+        except socket.gaierror:
+            logger.debug(f"'{address}' host was not found")
 
     # if all else fails, look for farm monitor presence notifier
+    return search_on_socket(logger, session, connection)
+
+
+def search_on_socket(logger, session, connection):
+    """Look for farm monitor presence notifier on the network."""
+
+    config = get_config()
+    presence_port = config.PRESENCE_PORT
+
     # get the first interface that is for farm monitor
     interface = session.query(Interface.interface).filter_by(is_for_fm=True).scalar()
 
+    if interface is None:
+        logger.warning(
+            "Interface from database is None. Has initial configuration been run? Setting interface to 'eth0'"
+        )
+        interface = "eth0"
+
     interface_address = get_ip_of_interface(interface, broadcast=True)
+
     logger.info("looking for FarmMonitor address on interface {}".format(interface))
     logger.debug("address is {}:{}".format(interface_address, presence_port))
 
@@ -64,7 +80,6 @@ def get_rabbitmq_address(logger, session):  # noqa: C901
         while True:
             timeout = 5
             ready = select.select([sock], [], [], timeout)
-
             # Someone answered our ping
             if ready[0]:
                 _, addrinfo = sock.recvfrom(2)
@@ -81,7 +96,6 @@ def get_rabbitmq_address(logger, session):  # noqa: C901
                         addrinfo[0], addrinfo[1]
                     )
                 )
-
             else:
                 logger.debug("No broadcast from FarmMonitor yet")
 
@@ -92,27 +106,26 @@ def get_rabbitmq_address(logger, session):  # noqa: C901
 
 
 def check_rabbitmq_address(logger, address):
-    """Check if the address is good, by trying to connect with the username and password."""
-
-    url = "http://" + address + ":15672/api/aliveness-test/farm_monitor"
+    """Check if the address is good, by trying to connect."""
 
     config = get_config()
     user = config.RABBITMQ_USER
     password = config.RABBITMQ_PASSWORD
+    port = 5672
+    virtual_host = config.RABBITMQ_VHOST
 
-    logger.debug(f"testing connection to: {url} with auth {user} - {password}")
+    credentials = pika.PlainCredentials(username=user, password=password)
+    parameters = pika.ConnectionParameters(
+        host=address, port=port, virtual_host=virtual_host, credentials=credentials
+    )
 
     try:
-        request_result = requests.get(url, auth=(user, password))
-
-        if request_result.status_code == requests.codes.ok:
-            data = request_result.json()
-            if data["status"] == "ok":
-                logger.debug(f"the url: {url} was succesfull")
-                return True
-    except requests.exceptions.ConnectionError:
-        logger.debug(f"the url: {url} had a connection failure")
+        logger.debug(f"testing connection to: {address}")
+        connection = pika.BlockingConnection(parameters=parameters)
+        if connection.is_open:
+            logger.debug(f"Connection to {address} is good.")
+            connection.close()
+            return True
+    except AMQPConnectionError:
+        logger.debug(f"Connection to {address} failed.")
         return False
-
-    logger.debug(f"the url: {url} was unsuccesfull, or the auth failed.")
-    return False
