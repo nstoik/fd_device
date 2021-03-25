@@ -129,3 +129,5 @@ def check_rabbitmq_address(logger, address):
     except AMQPConnectionError:
         logger.debug(f"Connection to {address} failed.")
         return False
+
+    return False
