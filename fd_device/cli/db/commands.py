@@ -3,7 +3,12 @@ import click
 from alembic import command as al_command
 from alembic.config import Config as AlConfig
 
-from fd_device.database.base import create_all_tables
+from fd_device.database.base import (
+    create_all_tables,
+    drop_all_tables,
+    get_base,
+    get_session,
+)
 
 # import all models so they are available to the SqlAlchemy base
 # pylint: disable=unused-import
@@ -15,6 +20,42 @@ from fd_device.settings import get_config
 @click.group()
 def database():
     """Command group for database commands."""
+
+
+@database.command()
+@click.option(
+    "--confirm",
+    default=False,
+    is_flag=True,
+    help="Confirm this action. This will delete all previous database data.",
+)
+def delete_all_data(confirm):
+    """Delete all data from the database."""
+
+    if not confirm:
+        click.echo(
+            "Action was not confirmed (command option '--confirm'). No change made."
+        )
+    else:
+        click.echo("deleting all data from the database.")
+
+        base = get_base()
+        session = get_session()
+        for table in reversed(base.metadata.sorted_tables):
+            session.execute(table.delete())
+        session.commit()
+
+        click.echo("done")
+
+
+@database.command()
+@click.pass_context
+def recreate_database(ctx):
+    """Drop and recreate database tables."""
+
+    click.echo("dropping all tables")
+    drop_all_tables()
+    ctx.forward(create_tables)
 
 
 @database.command("create_tables")
