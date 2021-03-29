@@ -2,8 +2,6 @@
 from datetime import datetime
 
 import click
-from alembic import command as al_command
-from alembic.config import Config as AlConfig
 from sqlalchemy.orm.exc import NoResultFound
 
 from fd_device.database.base import get_session
@@ -12,7 +10,6 @@ from fd_device.database.system import Hardware, Software, SystemSetup
 from fd_device.device.temperature import get_connected_sensors
 from fd_device.network.ethernet import get_interfaces
 from fd_device.network.wifi import set_interfaces
-from fd_device.settings import get_config
 from fd_device.system.control import (
     set_device_name,
     set_hardware_info,
@@ -25,19 +22,16 @@ from fd_device.system.control import (
 @click.option(
     "--standalone",
     is_flag=True,
-    prompt="Standalone configuration?",
-    default=True,
-    help="Is standalone setup or not",
+    prompt="Is this a standalone configuration?",
+    default=False,
+    help="Pass this flag to set this as a standalone configuration (default is False).",
 )
 def first_setup(standalone):  # noqa: C901
     """First time setup. Load required data."""
     # pylint: disable=too-many-statements,too-many-locals
-    click.echo("first time setup")
+    click.echo("First time setup")
 
     session = get_session()
-    config = get_config()
-    alembic_cnf = AlConfig(config.PROJECT_ROOT + "/alembic.ini")
-    alembic_cnf.set_main_option("script_location", config.PROJECT_ROOT + "/migrations")
 
     try:
         system = session.query(SystemSetup).one()
@@ -58,8 +52,6 @@ def first_setup(standalone):  # noqa: C901
     session.commit()
     session.close()
 
-    al_command.stamp(alembic_cnf, "head")
-
     if standalone:
         if click.confirm("Do you want to change the device name?"):
             name = click.prompt("Please enter a new device name")
@@ -74,9 +66,7 @@ def first_setup(standalone):  # noqa: C901
         )
         set_hardware_info(hardware_version, gb_count)
 
-    if click.confirm(
-        "Do you want to set the internal and external sensor information?"
-    ):
+    if click.confirm("Do you want to set the sensor information?"):
         current_sensors = get_connected_sensors(values=True)
         click.echo("Current sensor information: ")
         x = 1
