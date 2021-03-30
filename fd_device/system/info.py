@@ -104,6 +104,9 @@ def getserial():
     except OSError:
         cpuserial = "ERROR000000000"
 
+    except Exception as my_error:  # noqa: B902 pylint: disable=W0703
+        print(f"unknown exception: {my_error}")
+
     return cpuserial
 
 
