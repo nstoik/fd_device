@@ -72,7 +72,6 @@ class TestSetupCommands:
 
         print(result.output)
 
-        assert not result.exception
         assert "Is this a standalone configuration?" in result.output
         assert "Do you want to set hardware informations?" in result.output
         assert "Enter the hardware version" in result.output
@@ -80,6 +79,7 @@ class TestSetupCommands:
         assert "Do you want to set the sensor information" in result.output
         assert "Do you want to set the software information?" in result.output
         assert "Enter the software version" in result.output
+        assert not result.exception
 
     @staticmethod
     def test_first_setup_not_standalone_db(dbsession):
