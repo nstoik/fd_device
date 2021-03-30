@@ -67,7 +67,7 @@ class TestSetupCommands:
         """
 
         runner = CliRunner()
-        input_text = "n\nY\n\n\n\nY\n0.1\n"
+        input_text = "n\nY\n\n1\n\nY\n0.1\n"
         result = runner.invoke(first_setup, input=input_text)
 
         print(result.output)
@@ -86,7 +86,7 @@ class TestSetupCommands:
         """Test not standalone and confirm the db is updated."""
 
         runner = CliRunner()
-        input_text = "n\nY\n\n\n\nY\n0.1\n"
+        input_text = "n\nY\n\n1\n\nY\n0.1\n"
         result = runner.invoke(first_setup, input=input_text)
 
         device = dbsession.query(Device).one()
@@ -94,7 +94,7 @@ class TestSetupCommands:
         assert not result.exception
         assert isinstance(device.device_id, str)
         assert device.hardware_version == "pi3_0001"
-        assert device.grainbin_count == 0
+        assert device.grainbin_count == 1
         assert device.software_version == "0.1"
         assert device.interior_sensor is None
         assert device.exterior_sensor is None
