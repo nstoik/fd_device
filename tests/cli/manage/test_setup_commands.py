@@ -55,7 +55,12 @@ class TestSetupCommands:
         # answer yes to the first question (is this standalone config?)
         result = runner.invoke(first_setup, input="y\nN\nN\nN\nN\nN\n")
 
+        assert "Is this a standalone configuration?" in result.output
         assert "Do you want to change the device name?" in result.output
+        assert "Do you want to set hardware informations?" in result.output
+        assert "Do you want to set the sensor information" in result.output
+        assert "Do you want to set the software information?" in result.output
+        assert "Do you want to set details for the interfaces?" in result.output
         assert not result.exception
 
     @staticmethod
