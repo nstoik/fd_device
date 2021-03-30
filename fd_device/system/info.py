@@ -77,7 +77,10 @@ def get_device_name():
 
 
 def getserial():
-    """Return the serial number of the device."""
+    """Return the serial number of the device.
+
+    TODO: make serial number consistent even if docker container changes.
+    """
 
     logger.debug("getting serial number")
     # Extract serial
