@@ -90,9 +90,7 @@ def set_hardware_info(hardware_version, gb_reader_count):
     session = get_session()
 
     device_name = get_device_name()
-    print(f"device_name is: {device_name}")
     serial_number = getserial()
-    print(f"serial_number is: {serial_number}")
 
     try:
         hd = session.query(Hardware).one()

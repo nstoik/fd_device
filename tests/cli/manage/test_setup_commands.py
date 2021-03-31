@@ -75,8 +75,6 @@ class TestSetupCommands:
         input_text = "n\nY\n\n1\n\nY\n0.1\n"
         result = runner.invoke(first_setup, input=input_text)
 
-        print(result.output)
-
         assert "Is this a standalone configuration?" in result.output
         assert "Do you want to set hardware informations?" in result.output
         assert "Enter the hardware version" in result.output

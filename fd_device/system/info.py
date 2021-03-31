@@ -87,26 +87,20 @@ def getserial():
     cpuserial = "0000000000000000"
     try:
         # first try cpuinfo file
-        f = open("/proc/cpuinfo", "r")
-        for line in f:
-            if line.startswith("Serial"):
-                cpuserial = line[10:26]
-                f.close()
-                return cpuserial
-        f.close()
+        with open("/proc/cpuinfo", "r") as f:
+            for line in f:
+                if line.startswith("Serial"):
+                    cpuserial = line[10:26]
+                    return cpuserial
 
         # try the cgroup file if running in docker
-        f = open("/proc/self/cgroup", "r")
-        line = f.readline()
-        cpuserial = line.split("/docker/")[1][:16]
-        f.close()
-        return cpuserial
+        with open("/proc/self/cgroup", "r") as f:
+            for line in f:
+                if "/docker/" in line:
+                    cpuserial = line.split("/docker/")[1][:16]
+                    return cpuserial
     except OSError:
         cpuserial = "ERROR000000000"
-
-    except Exception as my_error:  # noqa: B902 pylint: disable=W0703
-        print(f"unknown exception: {my_error}")
-        raise
 
     return cpuserial
 
