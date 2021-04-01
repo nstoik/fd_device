@@ -77,11 +77,13 @@ def set_sensor_info(interior, exterior):
     session.close()
 
 
-def set_hardware_info(hardware_version, gb_reader_count):
+def set_hardware_info(hardware_version: str, gb_reader_count: str):
     """Set the hardware info into the HardwareDefinition table.
 
-    Hardware_version is a string representing what revison of hardware
-    gb_reader_count is the number of 1Wire readerchips the FarmDevice has
+    :param hardware_version: The hardware revision.
+    :type hardware_version: str
+    :param gb_reader_count: The number of 1Wire readerchips the FarmDevice has.
+    :type gb_reader_count: str
     """
 
     logger.debug(
@@ -108,11 +110,13 @@ def set_hardware_info(hardware_version, gb_reader_count):
     session.close()
 
 
-def set_software_info(software_version):
+def set_software_info(software_version: str):
     """Set the software version info into the SoftwareDefinition table.
 
-    software_version is a string representing what revison of software
+    :param software_version: The version of software
+    :type software_version: str
     """
+
     logger.debug(f"setting software version: {software_version}")
     session = get_session()
 
