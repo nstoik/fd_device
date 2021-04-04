@@ -2,8 +2,6 @@
 
 TODO: add tests for get_ip_of_interface, get_service_status
 """
-import pytest
-
 from fd_device.system.info import (
     get_cpu_temperature,
     get_device_name,
@@ -16,7 +14,6 @@ from fd_device.system.info import (
 )
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_uptime():
     """Test the get_uptime function."""
 
@@ -26,7 +23,6 @@ def test_get_uptime():
     assert len(uptime) > 0
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_uptime_seconds():
     """Test the get_uptime_seconds function."""
 
@@ -36,7 +32,6 @@ def test_get_uptime_seconds():
     assert uptime_seconds > 0
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_cpu_temperature():
     """Test the get_CPU_temperature function."""
 
@@ -45,7 +40,6 @@ def test_get_cpu_temperature():
     assert isinstance(cpu_temp, float)
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_device_name():
     """Test the get_device_name function."""
 
@@ -54,7 +48,6 @@ def test_get_device_name():
     assert isinstance(device_name, str)
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_serial():
     """Test the get_serial function."""
 
@@ -64,7 +57,6 @@ def test_get_serial():
     assert len(serial) == 16
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_system_data():
     """Test the get_system_data function."""
 
@@ -77,7 +69,6 @@ def test_get_system_data():
     assert "cpu_temp" in data
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_system_memory():
     """Test get_system_memory function."""
 
@@ -92,7 +83,6 @@ def test_get_system_memory():
     assert "disk_free" in data
 
 
-@pytest.mark.usefixtures("tables")
 def test_get_storage():
     """Test get_storage function."""
 

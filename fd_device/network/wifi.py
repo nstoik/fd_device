@@ -163,7 +163,7 @@ def wifi_info():
 
     logger.debug("getting wifi information")
 
-    wlan_interfaces = get_interfaces(only_wlan=True)
+    wlan_interfaces = get_interfaces(keep_eth=False)
 
     wifi = []
 
