@@ -8,7 +8,7 @@ from fd_device.database.base import get_session
 from fd_device.database.system import Hardware, Software
 from fd_device.device.temperature import get_connected_sensors
 
-from .info import get_device_name, getserial
+from .info import get_device_name, get_serial
 
 logger = logging.getLogger("fd.system.control")
 
@@ -92,7 +92,7 @@ def set_hardware_info(hardware_version: str, gb_reader_count: str):
     session = get_session()
 
     device_name = get_device_name()
-    serial_number = getserial()
+    serial_number = get_serial()
 
     try:
         hd = session.query(Hardware).one()

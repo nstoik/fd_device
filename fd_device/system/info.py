@@ -26,15 +26,24 @@ def get_ip_of_interface(interface, broadcast=False):
     return ip
 
 
-def get_uptime():
-    """Return the system uptime."""
+def get_uptime() -> str:
+    """Get the system uptime.
+
+    :return: The uptime of the system
+    :rtype: str
+    """
+
     logger.debug("getting uptime")
     uptime = subprocess.check_output(["uptime", "-p"], universal_newlines=True)
     return str(uptime[3:])
 
 
-def get_uptime_seconds():
-    """Return the system uptime in seconds."""
+def get_uptime_seconds() -> int:
+    """Get the system uptime in seconds.
+
+    :return: The uptime of the system in seconds.
+    :rtype: int
+    """
 
     logger.debug("getting uptime in seconds")
     uptime = subprocess.check_output(["cat", "/proc/uptime"], universal_newlines=True)
@@ -43,17 +52,31 @@ def get_uptime_seconds():
     return seconds
 
 
-def get_cpu_temperature():
-    """Return the CPU temperature."""
+def get_cpu_temperature() -> float:
+    """Get the CPU temperature.
+
+    :return: The CPU temperature of the device.
+    :rtype: float
+    """
 
     logger.debug("getting CPU temperature")
-    filepath = "/sys/class/thermal/thermal_zone0/temp"
-    res = subprocess.check_output(["cat", filepath], universal_newlines=True)
-    return float(int(res) / 1000)
+    try:
+        filepath = "/sys/class/thermal/thermal_zone0/temp"
+        res = subprocess.check_output(["cat", filepath], universal_newlines=True)
+        return float(int(res) / 1000)
+
+    except subprocess.CalledProcessError:
+        logger.warning("Unable to retrieve CPU temperature. Returning -99.9")
+        return -99.9
 
 
-def get_service_status():
-    """Return the status of the service."""
+def get_service_status() -> bool:
+    """Get the status of the service.
+
+    :raises NotImplementedError: TODO: need to implement
+    :return: True if the service is active, otherwise False
+    :rtype: bool
+    """
     # pylint: disable=unreachable
     raise NotImplementedError
 
@@ -68,18 +91,25 @@ def get_service_status():
     return bool(status.startswith("active"))
 
 
-def get_device_name():
-    """Return the name of the device."""
+def get_device_name() -> str:
+    """Get the name of the device.
+
+    :return: The name of the device
+    :rtype: str
+    """
 
     logger.debug("getting device name")
     device_name = socket.gethostname()
     return device_name
 
 
-def getserial():
-    """Return the serial number of the device.
+def get_serial() -> str:
+    """Get the serial numbr of the device.
 
     TODO: make serial number consistent even if docker container changes.
+
+    :return: The serial number of the device. The length will be 16 characters
+    :rtype: str
     """
 
     logger.debug("getting serial number")
@@ -105,21 +135,30 @@ def getserial():
     return cpuserial
 
 
-def get_system_data():
-    """Return all the system data as a dictionary."""
+def get_system_data() -> dict:
+    """Get all the system data.
+
+    :return: The system data with the following keys: 'uptime', 'current_time', load_avg', and 'cpu_temp'
+    :rtype: dict
+    """
 
     logger.debug("getting system data")
     system_data = {}
     system_data["uptime"] = get_uptime()
-    system_data["current_time"] = datetime.datetime.now()
-    system_data["load_avg"] = os.getloadavg()
-    system_data["cpu_temp"] = get_cpu_temperature()
+    system_data["current_time"] = str(datetime.datetime.now())
+    system_data["load_avg"] = str(os.getloadavg())
+    system_data["cpu_temp"] = str(get_cpu_temperature())
 
     return system_data
 
 
-def get_system_memory():
-    """Return the system memory as a dictionary."""
+def get_system_memory() -> dict:
+    """Get the system memory.
+
+    :return: The system memory with the following keys: 'ram_used', ram_total', 'ram_free',
+    'disk_used', 'disk_total', and 'disk_free'
+    :rtype: dict
+    """
 
     logger.debug("getting system memory")
     system_mem = {}
@@ -137,8 +176,12 @@ def get_system_memory():
     return system_mem
 
 
-def get_storage():
-    """Return the system storage as a dictionary."""
+def get_storage() -> dict:
+    """Get the system storage.
+
+    :return: The system storage with the following keys: 'disk_used', 'disk_total', and 'disk_free'
+    :rtype: dict
+    """
 
     logger.debug("getting device storage")
     disk = psutil.disk_usage("/")
