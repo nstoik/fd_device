@@ -1,9 +1,11 @@
 """Control the wifi connections of the device."""
 import logging
 import subprocess
+from typing import Optional
 
 import netifaces
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.session import object_session
 
 from fd_device.database.base import get_session
 from fd_device.database.system import Interface, Wifi
@@ -99,18 +101,34 @@ def scan_wifi(interface=None):
     return ssid
 
 
-def add_wifi_network(wifi_name, wifi_password, interface=None):
-    """Add a given wifi to the list of available wifi networks."""
+def add_wifi_network(
+    wifi_name: str, wifi_password: str, interface: Interface = None
+) -> Optional[Wifi]:
+    """Add a wifi entry to the database of stored WiFi networks.
 
-    session = get_session()
+    :param wifi_name: The SSID of the WiFi network
+    :type wifi_name: str
+    :param wifi_password: The password of the WiFi network
+    :type wifi_password: str
+    :param interface: The Interface to assign the WiFi to, defaults to None.
+                      If None, the first 'wlan' interface set to DHCP is used.
+    :type interface: Interface, optional
+    :return: The WiFi instance that was created, or None if no Interface is found.
+    :rtype: Optional[WiFi]
+    """
 
+    # if no interface is passed in, create a session and look for a valid interface
     if interface is None:
+        session = get_session()
         interfaces = session.query(Interface).all()
         for x in interfaces:
             # find first available wlan interface that is not dhcp
             if x.interface != "eth0" and x.state == "dhcp":
-                interface = x.interface
+                interface = x
                 break
+    # if an interface is passed in, get the session from the interface.
+    else:
+        session = object_session(interface)
 
     if interface is None:
         logger.error("No interface available to add new wifi network")
@@ -123,23 +141,27 @@ def add_wifi_network(wifi_name, wifi_password, interface=None):
     new_wifi.mode = "dhcp"
     new_wifi.interface = interface
 
-    session.add(new_wifi)
-    session.commit()
-
-    session.close()
+    new_wifi.save(session)
 
     return new_wifi
 
 
-def delete_wifi_network(network_id):
-    """Delete a wifi network given by 'id'."""
+def delete_wifi_network(wifi_id: str) -> bool:
+    """Delete a WiFi network.
+
+    :param wifi_id: The ID of the WiFi network to delete.
+    :type wifi_id: str
+    :return: True if an entry was deleted. False if nothing was deleted.
+    :rtype: bool
+    """
 
     session = get_session()
 
-    session.query(Wifi).filter_by(id=network_id).delete()
+    deleted_count = session.query(Wifi).filter_by(id=wifi_id).delete()
     session.commit()
-
     session.close()
+
+    return deleted_count > 0
 
 
 def wifi_info():
