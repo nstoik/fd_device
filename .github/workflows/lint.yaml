@@ -21,3 +21,5 @@ jobs:
         run: pipenv run fd_device lint --check
       - name: Run Python tests
         run: pipenv run fd_device test --coverage
+      - name: Run Python docstrings
+        run: pipenv run fd_device docstring -v
