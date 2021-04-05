@@ -17,5 +17,6 @@ entry_point.add_command(setup_commands.first_setup)
 
 entry_point.add_command(testing_commands.test)
 entry_point.add_command(testing_commands.lint)
+entry_point.add_command(testing_commands.docstring)
 
 entry_point.add_command(db_commands.database)

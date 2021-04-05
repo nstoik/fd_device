@@ -4,8 +4,11 @@ import os
 import sys
 from glob import glob
 from subprocess import call
+from typing import List
 
 import click
+import pytest
+from pyment import PyComment
 
 from fd_device.settings import get_config
 
@@ -13,7 +16,56 @@ config = get_config()  # pylint: disable=invalid-name
 HERE = config.APP_DIR
 PROJECT_ROOT = config.PROJECT_ROOT
 TEST_PATH = os.path.join(PROJECT_ROOT, "tests")
+MAX_DEPTH_RECUR = 50
+"""The maximum depth to reach while recursively exploring sub folders."""
 
+def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
+    """Retrieve the list of files from a folder.
+
+    @param path: file or directory where to search files
+    @param recursive: if True will search also sub-directories
+    @param depth: if explore recursively, the depth of sub directories to follow
+    @param file_ext: the files extension to get. Default is '.py'
+    @return: the file list retrieved. if the input is a file then a one element list.
+    """
+    file_list = []
+    if os.path.isfile(path) or path == '-':
+        return [path]
+    if path[-1] != os.sep:
+        path = path + os.sep
+    for f in glob(path + "*"):
+        if os.path.isdir(f):
+            if depth < MAX_DEPTH_RECUR:  # avoid infinite recursive loop
+                file_list.extend(get_files_from_dir(f, recursive, depth + 1))
+            else:
+                continue
+        elif f.endswith(file_ext):
+            file_list.append(f)
+    return file_list
+
+
+def get_root_files_and_directories() -> List[str]:
+    """Get the root .python files and root directories.
+
+    Returns:
+        List[str]: A list of strings of directories and Python files.
+    """
+    skip = [
+        "requirements",
+        "migrations",
+        "__pycache__",
+        "fd_device.egg-info",
+        "build",
+    ]
+    root_files = glob(PROJECT_ROOT + "/*.py")
+    root_directories = [
+        os.path.join(PROJECT_ROOT, name) for name in next(os.walk(PROJECT_ROOT))[1] if not name.startswith(".")
+    ]
+    files_and_directories = [
+        arg for arg in root_files + root_directories if not arg.endswith(tuple(skip))
+    ]
+
+    return files_and_directories
 
 @click.command()
 @click.option(
@@ -37,7 +89,6 @@ TEST_PATH = os.path.join(PROJECT_ROOT, "tests")
 )
 def test(coverage, filename, function):
     """Run the tests."""
-    import pytest  # pylint: disable=import-outside-toplevel
 
     if filename:
         pytest_args = [filename, "--verbose"]
@@ -69,20 +120,8 @@ def test(coverage, filename, function):
 )
 def lint(fix_imports, check):
     """Lint and check code style with black, flake8 and isort."""
-    skip = [
-        "requirements",
-        "migrations",
-        "__pycache__",
-        "fd_device.egg-info",
-        "build",
-    ]
-    root_files = glob("*.py")
-    root_directories = [
-        name for name in next(os.walk("."))[1] if not name.startswith(".")
-    ]
-    files_and_directories = [
-        arg for arg in root_files + root_directories if arg not in skip
-    ]
+
+    files_and_directories = get_root_files_and_directories()
 
     def execute_tool(description, *args):
         """Execute a checking tool with its arguments."""
@@ -106,3 +145,71 @@ def lint(fix_imports, check):
     execute_tool("Checking code style", "flake8")
     execute_tool("Checking for code errors", "pylint", *pylint_args)
     execute_tool("Checking static types", "mypy", *mypy_args)
+
+
+@click.command()
+@click.option(
+    "-f",
+    "--filename",
+    default=None,
+    help="Run on specific file eg. 'fd_device/main.py', otherwise run on all python files.",
+)
+@click.option(
+    "-w",
+    "--write",
+    default=False,
+    is_flag=True,
+    help="Overwrite the file with the changes. Only overwrites if working on a single file.",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    default=False,
+    is_flag=True,
+    help="If True, write the difference to the terminal",
+)
+def docstring(filename, write, verbose):
+    """Manage the docstrings for the project."""
+
+    file_list = []
+
+    if filename:
+        file_list.append(filename)
+    else:
+        files_and_directories = get_root_files_and_directories()
+        for item in files_and_directories:
+            file_list.extend(get_files_from_dir(item))
+
+    files_with_changes = 0
+    files_without_changes = 0
+    total_files = len(file_list)
+
+    for file in file_list:
+        pycom = PyComment(file, output_style="google")
+        pycom.proceed()
+
+        # Only overwrite if looking at a single file and write flag is passed in.
+        if filename and write:
+            list_from, list_to = pycom.compute_before_after()
+            if list_from != list_to:
+                click.echo(f"Overwriting file: { file } with changes")
+                pycom.overwrite_source_file(list_to)
+            else:
+                click.echo(f"No changes needed for file { file }")
+
+        # calculate the difference and track stats
+        else:
+            diff = pycom.diff()
+
+            if len(diff) > 0:
+                files_with_changes = files_with_changes + 1
+                if verbose:
+                    click.echo(f"File: { file } has changes")
+                    for line in diff:
+                        click.echo(line, nl=False)
+            else:
+                files_without_changes = files_without_changes + 1
+                if verbose:
+                    click.echo(f"File: { file } does not have changes")
+
+    click.echo(f"Docstring: {total_files} files scanned, {files_with_changes} with changes and {files_without_changes} without changes.")
