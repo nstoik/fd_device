@@ -19,7 +19,8 @@ TEST_PATH = os.path.join(PROJECT_ROOT, "tests")
 MAX_DEPTH_RECUR = 50
 """The maximum depth to reach while recursively exploring sub folders."""
 
-def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
+
+def get_files_from_dir(path, recursive=True, depth=0, file_ext=".py"):
     """Retrieve the list of files from a folder.
 
     @param path: file or directory where to search files
@@ -29,7 +30,7 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
     @return: the file list retrieved. if the input is a file then a one element list.
     """
     file_list = []
-    if os.path.isfile(path) or path == '-':
+    if os.path.isfile(path) or path == "-":
         return [path]
     if path[-1] != os.sep:
         path = path + os.sep
@@ -59,13 +60,16 @@ def get_root_files_and_directories() -> List[str]:
     ]
     root_files = glob(PROJECT_ROOT + "/*.py")
     root_directories = [
-        os.path.join(PROJECT_ROOT, name) for name in next(os.walk(PROJECT_ROOT))[1] if not name.startswith(".")
+        os.path.join(PROJECT_ROOT, name)
+        for name in next(os.walk(PROJECT_ROOT))[1]
+        if not name.startswith(".")
     ]
     files_and_directories = [
         arg for arg in root_files + root_directories if not arg.endswith(tuple(skip))
     ]
 
     return files_and_directories
+
 
 @click.command()
 @click.option(
@@ -147,6 +151,7 @@ def lint(fix_imports, check):
     execute_tool("Checking static types", "mypy", *mypy_args)
 
 
+# pylint: disable=too-many-branches
 @click.command()
 @click.option(
     "-f",
@@ -195,12 +200,11 @@ def docstring(filename, write, verbose):
                 click.echo(f"Overwriting file: { file } with changes")
                 pycom.overwrite_source_file(list_to)
             else:
-                click.echo(f"No changes needed for file { file }")
+                click.echo(f"No changes needed for file: { file }")
 
         # calculate the difference and track stats
         else:
             diff = pycom.diff()
-
             if len(diff) > 0:
                 files_with_changes = files_with_changes + 1
                 if verbose:
@@ -212,4 +216,6 @@ def docstring(filename, write, verbose):
                 if verbose:
                     click.echo(f"File: { file } does not have changes")
 
-    click.echo(f"Docstring: {total_files} files scanned, {files_with_changes} with changes and {files_without_changes} without changes.")
+    click.echo(
+        f"{total_files} files scanned, {files_with_changes} with and {files_without_changes} without changes."
+    )
