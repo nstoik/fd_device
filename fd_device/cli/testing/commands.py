@@ -216,6 +216,6 @@ def docstring(filename, write, verbose):
                 if verbose:
                     click.echo(f"File: { file } does not have changes")
 
-    click.echo(
-        f"{total_files} files scanned, {files_with_changes} files with and {files_without_changes} without changes."
-    )
+        click.echo(
+            f"{total_files} files scanned, {files_with_changes} files with and {files_without_changes} without changes."
+        )
