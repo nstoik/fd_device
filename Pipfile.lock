@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f5e16a0f9abffb4723d91a78d213294b52770f5ccc4aa6ca39476c9374ca9555"
+            "sha256": "2eda20a56d31c81f23b61e868ddd8fc82ec34ea3fcb36de0da4bfaeb52d0b0ff"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -898,12 +898,9 @@
             "version": "==2.7.4"
         },
         "pyment": {
-            "hashes": [
-                "sha256:951a4c52d6791ccec55bc739811169eed69917d3874f5fe722866623a697f39d",
-                "sha256:a0c6ec59d06d24aeec3eaecb22115d0dc95d09e14209b2df838381fdf47a78cc"
-            ],
-            "index": "pypi",
-            "version": "==0.3.3"
+            "editable": true,
+            "git": "https://github.com/dadadel/pyment",
+            "ref": "2c10b1c64093adbce8db369a3db4321e6c3c7c32"
         },
         "pyparsing": {
             "hashes": [

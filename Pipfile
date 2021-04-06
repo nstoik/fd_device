@@ -24,7 +24,8 @@ pylint = "~=2.7.4"
 "e1839a8" = {path = ".", editable = true}
 
 # Documentation and Docstrings
-pyment = "~=0.3.3"
+# pyment = "~=0.3.4"
+pyment = {git = "https://github.com/dadadel/pyment",editable = true}
 
 [packages]
 SQLAlchemy = "~=1.4.4"
