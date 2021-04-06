@@ -174,12 +174,33 @@ def lint(fix_imports, check):
     help="If True, write the difference to the terminal",
 )
 def docstring(filename, write, verbose):
-    """Manage the docstrings for the project."""
+    """Manage the docstrings for the project.
+
+    If verbose is passed in, print out the diffs.
+    If a filename is passed in, run only on that file. Otherwise run on all files.
+    If write is passed in, and a filename is passed. Then overwrite the changes and run black.
+
+    """
+
+    # Only overwrite if looking at a single file and write flag is passed in.
+    if filename and write:
+        pycom = PyComment(filename, output_style="google")
+        pycom.proceed()
+        list_from, list_to = pycom.compute_before_after()
+        if list_from != list_to:
+            click.echo(
+                f"Overwriting file: { filename } with changes and calling tool black"
+            )
+            pycom.overwrite_source_file(list_to)
+            call(["black", filename])
+        else:
+            click.echo(f"No changes needed for file: { filename }")
+
+        return
 
     file_list = []
-
     if filename:
-        file_list.append(filename)
+        file_list = [filename]
     else:
         files_and_directories = get_root_files_and_directories()
         for item in files_and_directories:
@@ -193,29 +214,22 @@ def docstring(filename, write, verbose):
         pycom = PyComment(file, output_style="google")
         pycom.proceed()
 
-        # Only overwrite if looking at a single file and write flag is passed in.
-        if filename and write:
-            list_from, list_to = pycom.compute_before_after()
-            if list_from != list_to:
-                click.echo(f"Overwriting file: { file } with changes")
-                pycom.overwrite_source_file(list_to)
-            else:
-                click.echo(f"No changes needed for file: { file }")
-
         # calculate the difference and track stats
+        diff = pycom.diff()
+        if len(diff) > 0:
+            files_with_changes = files_with_changes + 1
+            if verbose:
+                click.echo(f"File: { file } has changes")
+                for line in diff:
+                    click.echo(line, nl=False)
         else:
-            diff = pycom.diff()
-            if len(diff) > 0:
-                files_with_changes = files_with_changes + 1
-                if verbose:
-                    click.echo(f"File: { file } has changes")
-                    for line in diff:
-                        click.echo(line, nl=False)
-            else:
-                files_without_changes = files_without_changes + 1
-                if verbose:
-                    click.echo(f"File: { file } does not have changes")
+            files_without_changes = files_without_changes + 1
+            if verbose:
+                click.echo(f"File: { file } does not have changes")
 
-        click.echo(
-            f"{total_files} files scanned, {files_with_changes} files with and {files_without_changes} without changes."
+    click.echo(
+        (
+            f"{total_files} files scanned, {files_with_changes} files with changes and "
+            f"{files_without_changes} files without changes."
         )
+    )
