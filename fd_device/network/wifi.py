@@ -5,7 +5,7 @@ from typing import List, Optional
 
 import netifaces
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm.session import Session, object_session
+from sqlalchemy.orm.session import object_session
 
 from fd_device.database.base import get_session
 from fd_device.database.system import Interface, Wifi
@@ -294,44 +294,17 @@ def set_interfaces(interfaces: List):
         if interface["state"] == "ap":
             wifi_ap_present = True
         if "creds" in interface:
-            set_wifi_credentials(session, db_result, interface["creds"])
-
+            add_wifi_network(
+                wifi_name=interface["creds"]["ssid"],
+                wifi_password=interface["creds"]["password"],
+                interface=db_result,
+            )
     session.commit()
 
     if wifi_ap_present:
         set_ap_mode()
     else:
         set_wpa_mode()
-
-
-def set_wifi_credentials(session: Session, interface: Interface, wifi_creds: dict):
-    """Set the WiFi credentials information for a given interface.
-
-    Args:
-        session (Session): The database session.
-        interface (Interface): The interface to add the credentials to.
-        wifi_creds (dict): The WiFi credentials.
-    """
-
-    logger.info(
-        f"adding wifi. name: {wifi_creds['ssid']} password: {wifi_creds['password']} state: {interface.state}"
-    )
-
-    # see if the wifi credentials already exisit
-    for credential in interface.credentials:
-        if credential.name == wifi_creds["ssid"]:
-            logger.debug(f"ssid already exisits for {interface.interface}. Updating.")
-            credential.password = wifi_creds["password"]
-            credential.mode = interface.state
-            return
-
-    # else the wifi credentials do not exisit
-    new_creds = Wifi()
-    new_creds.interface = interface.interface
-    new_creds.name = wifi_creds["ssid"]
-    new_creds.password = wifi_creds["password"]
-    new_creds.mode = interface.state
-    session.add(new_creds)
 
 
 def set_ap_mode():

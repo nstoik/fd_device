@@ -1,8 +1,8 @@
 """Tests for the wifi module.
 
-TODO: add tests for refresh_interfaces, scan_wifi,
+TODO: add tests for functions: refresh_interfaces, scan_wifi, wifi_info, wifi_ap_clients, wifi_dhcp_info,
+      set_interfaces, set_ap_mode, set_wpa_mode
 """
-# pylint: disable=unused-argument
 import pytest
 
 from fd_device.database.system import Interface, Wifi
@@ -48,7 +48,7 @@ def test_add_wifi_network_with_interface(dbsession):
 
 
 @pytest.mark.usefixtures("tables")
-def test_add_wifi_network_no_interface(dbsession):
+def test_add_wifi_network_no_interface():
     """Test the add_wifi_netwrok function with no valid interface."""
 
     wifi = add_wifi_network(wifi_name="TestWiFiName", wifi_password="password")
@@ -71,9 +71,9 @@ def test_delete_wifi_network(dbsession):
 
 
 @pytest.mark.usefixtures("tables")
-def test_delete_wifi_network_not_exisit(dbsession):
-    """Test the delete_wifi_network function when the WiFi instance does not exisit."""
+def test_delete_wifi_network_not_exisit():
+    """Test the delete_wifi_network function when the WiFi instance does not exist."""
 
-    delete_wifi_network("99")
+    confirm_deleted = delete_wifi_network("99")
 
-    assert False
+    assert not confirm_deleted
