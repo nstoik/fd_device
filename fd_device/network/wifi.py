@@ -1,11 +1,11 @@
 """Control the wifi connections of the device."""
 import logging
 import subprocess
-from typing import Optional
+from typing import List, Optional
 
 import netifaces
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm.session import object_session
+from sqlalchemy.orm.session import Session, object_session
 
 from fd_device.database.base import get_session
 from fd_device.database.system import Interface, Wifi
@@ -60,10 +60,15 @@ def refresh_interfaces():
         set_wpa_mode()
 
 
-def scan_wifi(interface=None):
+def scan_wifi(interface=None) -> List:
     """Scan the interface for the available wifi networks.
 
-    Returns a list of strings that are the found networks
+    Args:
+        interface (str, optional): the interface to search on. Defaults to None.
+        if no interface is given, try an interface from the database that is 'dhcp'
+
+    Returns:
+        List: A list of strings that are the found networks
     """
 
     # if no interface is given, try find an interface in the database
@@ -106,15 +111,14 @@ def add_wifi_network(
 ) -> Optional[Wifi]:
     """Add a wifi entry to the database of stored WiFi networks.
 
-    :param wifi_name: The SSID of the WiFi network
-    :type wifi_name: str
-    :param wifi_password: The password of the WiFi network
-    :type wifi_password: str
-    :param interface: The Interface to assign the WiFi to, defaults to None.
-                      If None, the first 'wlan' interface set to DHCP is used.
-    :type interface: Interface, optional
-    :return: The WiFi instance that was created, or None if no Interface is found.
-    :rtype: Optional[WiFi]
+    Args:
+        wifi_name (str): The SSID of the WiFi network.
+        wifi_password (str): The password of the WiFi network.
+        interface (Interface, optional): The Interface to assign the WiFi to.
+        If Noine, the first 'wlan' interface set to DHCP is used. Defaults to None.
+
+    Returns:
+        Optional[Wifi]: The WiFi instance that was created or None if no Interface is found.
     """
 
     # if no interface is passed in, create a session and look for a valid interface
@@ -149,10 +153,11 @@ def add_wifi_network(
 def delete_wifi_network(wifi_id: str) -> bool:
     """Delete a WiFi network.
 
-    :param wifi_id: The ID of the WiFi network to delete.
-    :type wifi_id: str
-    :return: True if an entry was deleted. False if nothing was deleted.
-    :rtype: bool
+    Args:
+        wifi_id (str): The ID of the WiFi netowrk to delete
+
+    Returns:
+        bool: True if an entry was deleted. False if nothing was deleted.
     """
 
     session = get_session()
@@ -161,28 +166,28 @@ def delete_wifi_network(wifi_id: str) -> bool:
     session.commit()
     session.close()
 
-    return deleted_count > 0
+    return bool(deleted_count > 0)
 
 
-def wifi_info():
-    """Get a list of wifi details for all wlan interfaces.
+def wifi_info() -> List:
+    """Get a list of WiFi details for all wlan interfaces.
 
-    For each interface, a dictionary of details is added to the list
-    Keys of the dictionary are:
-        interface: the interface
-        if ap:
-            clients: the number of clients currently connected
-            ssid: the ssid of the ap
-            password: the password of the ap
-        if dhcp:
-            state: either the SSID currently connected to or False
-            state_boolean: boolean value for state. True or False
-            if state:
-                address: the IPV4 address
-            ssid: the ssid of the dhcp interface
-            password: the password of the dhcp interface
+    Returns:
+        List: For each interface, a dictionary of details is added to the list
+                Keys of the dictionary are:
+                    interface: the interface
+                    if ap:
+                        clients: the number of clients currently connected
+                        ssid: the ssid of the ap
+                        password: the password of the ap
+                    if dhcp:
+                        state: either the SSID currently connected to or False
+                        state_boolean: boolean value for state. True or False
+                        if state:
+                            address: the IPV4 address
+                        ssid: the ssid of the dhcp interface
+                        password: the password of the dhcp interface
     """
-
     logger.debug("getting wifi information")
 
     wlan_interfaces = get_interfaces(keep_eth=False)
@@ -223,8 +228,15 @@ def wifi_info():
     return wifi
 
 
-def wifi_ap_clients(interface):
-    """Return the list of ap clients given an interface name."""
+def wifi_ap_clients(interface: str) -> int:
+    """Get the list of ap clients an interface has.
+
+    Args:
+        interface (str): The interface to get the details for.
+
+    Returns:
+        int: The number of clients connected to the interface.
+    """
 
     logger.debug("getting wifi clients")
     command = ["iw", "dev", interface, "station", "dump"]
@@ -235,17 +247,21 @@ def wifi_ap_clients(interface):
     return client_count
 
 
-def wifi_dhcp_info(interface):
-    """Returns the SSID that is connected for a given interface name.
+def wifi_dhcp_info(interface: str) -> str:
+    """Return the SSID that is connected for a given interface.
 
-    Else returns False.
+    Args:
+        interface (str): The interface to check. eg. 'wlan0'
+
+    Returns:
+        str: The SSID for the interface, or 'Not connected' if the interface is not connected.
     """
 
     command = ["iw", interface, "link"]
     output = subprocess.check_output(command, universal_newlines=True)
 
     if output.startswith("Not connected."):
-        return False
+        return "Not connected"
 
     start_index = output.find("SSID: ")
     end_index = output.find("\n", start_index)
@@ -254,10 +270,11 @@ def wifi_dhcp_info(interface):
     return ssid
 
 
-def set_interfaces(interfaces):
+def set_interfaces(interfaces: List):
     """Set interface information into database and configure hardware accordingly.
 
-    interfaces is a list of dictionaries with required information
+    Args:
+        interfaces (List): A list of dictionaries with the required information.
     """
 
     session = get_session()
@@ -287,8 +304,14 @@ def set_interfaces(interfaces):
         set_wpa_mode()
 
 
-def set_wifi_credentials(session, interface, wifi_creds):
-    """Sets the wifi credentials information for a given interface."""
+def set_wifi_credentials(session: Session, interface: Interface, wifi_creds: dict):
+    """Set the WiFi credentials information for a given interface.
+
+    Args:
+        session (Session): The database session.
+        interface (Interface): The interface to add the credentials to.
+        wifi_creds (dict): The WiFi credentials.
+    """
 
     logger.info(
         f"adding wifi. name: {wifi_creds['ssid']} password: {wifi_creds['password']} state: {interface.state}"
