@@ -22,4 +22,4 @@ jobs:
       - name: Run Python tests
         run: pipenv run fd_device test --coverage
       - name: Run Python docstrings
-        run: pipenv run fd_device docstring -v
+        run: pipenv run fd_device docstring
