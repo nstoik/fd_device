@@ -13,10 +13,11 @@ services:
       - "fd_db"
     volumes:
       - "logs:/logs"
+    restart: unless-stopped
   fd_db:
     image: postgres:11
     container_name: "fd_db"
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: farm_device
       POSTGRES_USER: fd
