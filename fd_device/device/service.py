@@ -5,212 +5,110 @@ import uuid
 
 import pika
 
+from fd_device.celery_runner import app
+from fd_device.controller.connection import Connection, Message
 from fd_device.database.base import get_session
-from fd_device.database.device import Connection, Device
-from fd_device.settings import get_config
-
-from .rabbitmq_messages import ReceiveMessages
+from fd_device.database.device import Connection as db_Connection
+from fd_device.database.device import Device
+from fd_device.device.update import get_device_info
 
 LOGGER = logging.getLogger("fd.device.service")
 
 
-class DeviceConnection:  # pylint: disable=too-many-instance-attributes
-    """Connect to server via RabbitMQ."""
+class DeviceConnection(Connection):
+    """Communicate with the Server via RabbitMQ."""
 
-    def __init__(self):
-        """Create the DeviceConnection object."""
+    def __init__(self, logger):
+        """Overwrite the Connection __init__."""
+        super().__init__(logger)
 
-        self.HEARTBEAT = None
-        self.MESSAGE_RECEIVER = None
+        # pylint: disable=invalid-name
+        self.HEARTBEAT_MESSGES = None
+        self.SERVER_MESSAGES = None
 
-        # store and manage internal state
-        self._connection = None
-        self._channel = None
-        self._stopping = False
-        self._closing = False
-        self._session = None
-
-        self._deliveries = []
-        self._acked = 0
-        self._nacked = 0
-        self._message_number = 0
-
-        # retrieve variables from config and database
-        config = get_config()
         self._session = get_session()
-        host = self._session.query(Connection.address).scalar()
-
-        # connection parameters
-        self._user = config.RABBITMQ_USER
-        self._password = config.RABBITMQ_PASSWORD
-        self._host = host
-        self._port = 5672
-        self._virtual_host = config.RABBITMQ_VHOST
-
-    def connect(self):
-        """This method connects to RabbitMQ, returning the connection handle.
-
-        When the connection is established, the on_connection_open method
-        will be invoked by pika.
-
-        :rtype: pika.SelectConnection
-
-        """
-        LOGGER.info("Connecting to RabbitMQ")
-        creds = pika.PlainCredentials(self._user, self._password)
-        params = pika.ConnectionParameters(
-            host=self._host,
-            port=self._port,
-            virtual_host=self._virtual_host,
-            credentials=creds,
-        )
-        return pika.SelectConnection(
-            parameters=params,
-            on_open_callback=self.on_connection_open,
-            on_open_error_callback=self.on_connection_open_error,
-            on_close_callback=self.on_connection_closed,
-        )
-
-    def on_connection_open(self, _unused_connection):
-        """This method is called by pika once the connection to RabbitMQ has been established.
-
-        It passes the handle to the connection object in
-        case we need it, but in this case, we'll just mark it unused.
-
-        :type _unused_connection: pika.SelectConnection
-
-        """
-        LOGGER.debug("Connection opened")
-        self.open_channel()
-
-    def on_connection_open_error(self, _unused_connection, err):
-        """This method is called by pika if the connection to RabbitMQ can't be established.
-
-        :param pika.SelectConnection _unused_connection: The connection
-        :param Exception err: The error
-        """
-        LOGGER.error("Connection open failed: %s", err)
-        self.reconnect()
-
-    def on_connection_closed(self, _unused_connection, reason):
-        """This method is invoked by pika when the connection to RabbitMQ is closed unexpectedly.
-
-        Since it is unexpected, we will reconnect to RabbitMQ if it disconnects.
-
-        :param pika.connection.Connection connection: The closed connection obj
-        :param Exception reason: exception representing reason for loss of connection.
-
-        """
-        self._channel = None
-        if self._closing:
-            self._connection.ioloop.stop()
-        else:
-            LOGGER.warning("Connection closed, reopening in 5 seconds: %s", reason)
-            self._connection.ioloop.call_later(5, self.reconnect)
-
-    def reconnect(self):
-        """Will be invoked by the IOLoop timer if the connection is closed.
-
-        See the on_connection_closed method.
-        """
-        self._deliveries = []
-        self._acked = 0
-        self._nacked = 0
-        self._message_number = 0
-
-        # This is the old connection IOLoop instance, stop its ioloop
-        self._connection.ioloop.stop()
-
-        # Create a new connection
-        self._connection = self.connect()
-
-        # There is now a new connection, needs a new ioloop to run
-        self._connection.ioloop.start()
-
-    def open_channel(self):
-        """This method will open a new channel with RabbitMQ by issuing the Channel.Open RPC command.
-
-        When RabbitMQ confirms the channel is open by sending the Channel.OpenOK RPC reply,
-        the on_channel_open method will be invoked.
-        """
-        LOGGER.debug("Creating a new channel")
-        self._connection.channel(on_open_callback=self.on_channel_open)
+        self._host = self._session.query(db_Connection.address).scalar()
 
     def on_channel_open(self, channel):
-        """This method is invoked by pika when the channel has been opened.
+        """Overwrite the on_channel_open method.
 
-        The channel object is passed in so we can make use of it.
-        Since the channel is now open, we'll declare the exchange to use.
-
-        :param pika.channel.Channel channel: The channel object
-
+        Run normal commands, then create the HEARTBEAT_MESSAGES
+        and SERVER_MESSAGES objects.
         """
-        LOGGER.debug("Channel opened")
-        self._channel = channel
-        self.add_on_channel_close_callback()
-        self.HEARTBEAT = Heartbeat(self._connection, self._channel, self._session)
-        self.MESSAGE_RECEIVER = ReceiveMessages(self._channel)
+        super().on_channel_open(channel)
 
-    def add_on_channel_close_callback(self):
-        """This method tells pika to call the on_channel_closed method if RabbitMQ unexpectedly closes the channel."""
-        LOGGER.debug("Adding channel close callback")
-        self._channel.add_on_close_callback(self.on_channel_closed)
-
-    def on_channel_closed(self, _channel, reason):
-        """Invoked by pika when RabbitMQ unexpectedly closes the channel.
-
-        Channels are usually closed if you attempt to do something that
-        violates the protocol, such as re-declare an exchange or queue with
-        different parameters. In this case, we'll close the connection
-        to shutdown the object.
-
-        :param pika.channel.Channel: The closed channel
-        :param str reason: The reason the channel was closed
-
-        """
-        if not self._closing:
-            LOGGER.warning("Channel was closed: %s", reason)
-            self._connection.close()
-
-    def close_channel(self):
-        """Invoke this command to close the channel with RabbitMQ by sending the Channel.Close RPC command."""
-        LOGGER.debug("Closing the channel")
-        if self._channel:
-            self._channel.close()
-
-    def close_connection(self):
-        """This method closes the connection to RabbitMQ."""
-        LOGGER.debug("Closing connection")
-        self._closing = True
-        self._connection.close()
-
-    def run(self):
-        """Run the example code by connecting and then starting the IOLoop."""
-        self._connection = self.connect()
-        self._connection.ioloop.start()
+        self.HEARTBEAT_MESSGES = HeartbeatMessage(
+            self._connection, self._channel, self._session
+        )
+        self.SERVER_MESSAGES = ServerMessage(self._channel)
 
     def stop(self):
-        """Stop the example by closing the channel and connection.
+        """Overwrite the stop method.
 
-        We set a flag here so that we stop scheduling new messages to be
-        published. The IOLoop is started because this method is
-        invoked by the Try/Catch below when KeyboardInterrupt is caught.
-        Starting the IOLoop again will allow the publisher to cleanly
-        disconnect from RabbitMQ.
+        Stop the HEARTBEAT_MESSAGES and SERVER_MESSAGES objects, then
+        stop the rest of the items.
         """
-        LOGGER.info("Stopping")
-        self._stopping = True
-        self.HEARTBEAT.set_stopping(True)
-        self.MESSAGE_RECEIVER.stop_consuming()
-        self.close_channel()
-        self.close_connection()
-        self._connection.ioloop.start()
+        self.HEARTBEAT_MESSGES.set_stopping(True)
+        self.SERVER_MESSAGES.set_stopping(True)
+        self.SERVER_MESSAGES.stop_consuming()
+
         self._session.close()
-        LOGGER.info("Stopped")
+        super().stop()
 
 
-class Heartbeat:  # pylint: disable=too-many-instance-attributes
-    """A heartbeat connection to the server."""
+class ServerMessage(Message):
+    """Receive and respond to messages."""
+
+    def __init__(self, channel):
+        """Override the __init__ method from Message class.
+
+        Create the logger instance, and se the required config info.
+        Call the setup_exchange function to start the communication.
+        """
+        super().__init__(channel)
+
+        self.LOGGER = logging.getLogger("fd.device.service.messages")
+
+        self.exchange_name = "device_messages"
+        self.exchange_type = "topic"
+        self.routing_key = "all.create"
+
+        self.setup_exchange(self.exchange_name)
+
+    def on_message(self, unused_channel, basic_deliver, properties, body):
+        """Invoked by pika when a message is delivered from RabbitMQ.
+
+        The channel is passed for your convenience. The basic_deliver object that
+        is passed in carries the exchange, routing key, delivery tag and
+        a redelivered flag for the message. The properties passed in is an
+        instance of BasicProperties with the message properties and the body
+        is the message that was sent.
+
+        :param pika.channel.Channel unused_channel: The channel object
+        :param pika.Spec.Basic.Deliver: basic_deliver method
+        :param pika.Spec.BasicProperties: properties
+        :param str|unicode body: The message body
+
+        """
+        payload = json.loads(body)
+        command = payload["command"]
+
+        LOGGER.debug(f"Received {command} command with key {basic_deliver.routing_key}")
+        if command == "create":
+            info = get_device_info()
+            LOGGER.info("sending create task")
+            value = app.send_task(name="device.create", args=(info,))
+            print(value)
+            LOGGER.info("create task sent")
+            # LOGGER.info(f'return value {value.get()}')
+
+        self._channel.basic_ack(basic_deliver.delivery_tag)
+
+
+class HeartbeatMessage(Message):
+    """Send heartbeat messages to the server."""
+
+    # pylint: disable=too-many-instance-attributes
 
     HEARTBEAT_INTERVAL = 5
     TIMEOUT = 3
@@ -219,14 +117,16 @@ class Heartbeat:  # pylint: disable=too-many-instance-attributes
     STATE = "disconnected"
 
     def __init__(self, connection, channel, session):
-        """Create the heartbeat object."""
+        """Overwrite the __init__ method from Message class.
 
-        self.LOGGER = LOGGER
+        Creat the logger instance, and set the required config info.
+        Call the setup_exchange function to start the communication.
+        """
+        super().__init__(channel)
 
-        # store and manage internal state
+        self.LOGGER = logging.getLogger("fd.device.service.heartbeat")
+
         self._connection = connection
-        self._channel = channel
-        self._stopping = False
         self._deliveries = []
         self._acked = 0
         self._nacked = 0
@@ -235,70 +135,27 @@ class Heartbeat:  # pylint: disable=too-many-instance-attributes
         self._corr_id = None
         self._timeouts_missed = 0
         self._session = session
-
-        device_id = self._session.query(Device.device_id).scalar()
+        self.device_id = self._session.query(Device.device_id).scalar()
 
         # communication parameters
-        self.exchange_name = "heartbeat_events"
+        self.exchange_name = "heartbeat_messages"
         self.exchange_type = "direct"
         self.routing_key = "heartbeat"
-        self.reply_queue_name = None
-        self.device_id = device_id
 
         self.setup_exchange(self.exchange_name)
 
-    def set_stopping(self, state):
-        """Set the _stopping state."""
-        self._stopping = state
-
-    def setup_exchange(self, exchange_name):
-        """Setup the exchange on RabbitMQ by invoking the Exchange.Declare RPC command.
-
-        When it is complete, the on_exchange_declareok method will be invoked by pika.
-
-        :param str|unicode exchange_name: The name of the exchange to declare
-
-        """
-        self.LOGGER.debug("Declaring exchange %s", exchange_name)
-        self._channel.exchange_declare(
-            exchange=exchange_name,
-            exchange_type=self.exchange_type,
-            callback=self.on_exchange_declareok,
-        )
-
-    def on_exchange_declareok(self, _unused_frame):
-        """Invoked by pika when RabbitMQ has finished the Exchange.Declare RPC command.
-
-        :param pika.Frame.Method _unused_frame: Exchange.DeclareOk response frame
-        """
-        self.LOGGER.debug("Exchange declared")
-        self.setup_reply_queue()
-
-    def setup_reply_queue(self):
-        """Setup the queue on RabbitMQ by invoking the Queue.Declare RPC command.
-
-        When it is complete, the on_queue_declareok method will be invoked by pika.
-
-        :param str|unicode queue_name: The name of the queue to declare.
-        """
-        self.LOGGER.debug("Declaring reply queue")
-        self._channel.queue_declare(
-            queue="", callback=self.on_queue_declareok, exclusive=True, auto_delete=True
-        )
-
     def on_queue_declareok(self, method_frame):
-        """Method invoked by pika when the Queue.Declare RPC call made in setup_queue has completed.
+        """Overwrite from the Message class.
 
-        In this method we will bind the queue and exchange together with the routing key by issuing the
-        Queue.Bind RPC command. When this command is complete, the on_bindok method will be invoked by pika.
-
-        :param pika.frame.Method method_frame: The Queue.DeclareOk frame
+        Instead of binding to the queue, issue a basic_consuming,
+        and start publishing heartbeats instead.
         """
-        self.reply_queue_name = method_frame.method.queue
-        self.LOGGER.debug("Reply queue declared with name %s", self.reply_queue_name)
+
+        self.queue_name = method_frame.method.queue
+        self.LOGGER.debug("Queue declared with name %s", self.queue_name)
         self._channel.basic_consume(
             on_message_callback=self.on_reply_received,
-            queue=self.reply_queue_name,
+            queue=self.queue_name,
             auto_ack=True,
         )
         self.start_publishing()
@@ -342,13 +199,14 @@ class Heartbeat:  # pylint: disable=too-many-instance-attributes
         elif confirmation_type == "nack":
             self._nacked += 1
         self._deliveries.remove(method_frame.method.delivery_tag)
-        self.LOGGER.debug(
-            (
-                f"Published {self._message_number} messages, "
-                f"{len(self._deliveries)} to be confirmed, "
-                f"{self._acked} were acked and {self._nacked} were nacked"
-            )
-        )
+
+        # self.LOGGER.debug(
+        #     (
+        #         f"Published {self._message_number} messages, "
+        #         f"{len(self._deliveries)} to be confirmed, "
+        #        f"{self._acked} were acked and {self._nacked} were nacked"
+        #     )
+        # )
 
     def schedule_next_message(self):
         """If not closing connection to RabbitMQ, schedule another message in PUBLISH_INTERVAL seconds."""
@@ -385,7 +243,7 @@ class Heartbeat:  # pylint: disable=too-many-instance-attributes
         properties = pika.BasicProperties(
             app_id=self.device_id,
             content_type="application/json",
-            reply_to=self.reply_queue_name,
+            reply_to=self.queue_name,
             correlation_id=self._corr_id,
         )
 
@@ -426,7 +284,8 @@ class Heartbeat:  # pylint: disable=too-many-instance-attributes
 
 def run_connection():
     """Run the device connection."""
-    device_connection = DeviceConnection()
+
+    device_connection = DeviceConnection(logger=LOGGER)
 
     try:
         device_connection.run()
