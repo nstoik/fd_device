@@ -19,7 +19,7 @@ flake8-isort = "~=4.0.0"
 isort = "~=5.8.0"
 mypy = "~=0.790"
 pep8-naming = "~=0.11.1"
-pylint = "~=2.7.4"
+pylint = "~=2.8.1"
 
 "e1839a8" = {path = ".", editable = true}
 
