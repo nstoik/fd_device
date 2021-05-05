@@ -6,7 +6,7 @@ name = "pypi"
 [dev-packages]
 # Testing
 factory-boy = "~=3.2.0"
-pytest = "~=6.2.2"
+pytest = "~=6.2.4"
 pytest-cov = "*"
 
 # Lint and code style
