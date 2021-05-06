@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "092d5671f68d29a40ea89f7afb88903bb2709069aaad6b0a60c6bba25587507f"
+            "sha256": "5c02ed44e8a9728178ee8257b67a51f96170af6519f533d0219bf516abfe3678"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -18,11 +18,11 @@
     "default": {
         "alembic": {
             "hashes": [
-                "sha256:8a259f0a4c8b350b03579d77ce9e810b19c65bf0af05f84efb69af13ad50801e",
-                "sha256:e27fd67732c97a1c370c33169ef4578cf96436fa0e7dcfaeeef4a917d0737d56"
+                "sha256:3ff4f90d23dd283d7822d78ffbc07cb256344ae1d60500b933378bc13407efcc",
+                "sha256:d7f6d4dc6abed18e1591932a85349a7d621298ef0daa40021609cdca54a6047c"
             ],
             "index": "pypi",
-            "version": "==1.5.8"
+            "version": "==1.6.0"
         },
         "amqp": {
             "hashes": [
@@ -338,10 +338,10 @@
         },
         "six": {
             "hashes": [
-                "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259",
-                "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"
+                "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
+                "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "version": "==1.15.0"
+            "version": "==1.16.0"
         },
         "sqlalchemy": {
             "hashes": [
@@ -401,11 +401,11 @@
     "develop": {
         "alembic": {
             "hashes": [
-                "sha256:8a259f0a4c8b350b03579d77ce9e810b19c65bf0af05f84efb69af13ad50801e",
-                "sha256:e27fd67732c97a1c370c33169ef4578cf96436fa0e7dcfaeeef4a917d0737d56"
+                "sha256:3ff4f90d23dd283d7822d78ffbc07cb256344ae1d60500b933378bc13407efcc",
+                "sha256:d7f6d4dc6abed18e1591932a85349a7d621298ef0daa40021609cdca54a6047c"
             ],
             "index": "pypi",
-            "version": "==1.5.8"
+            "version": "==1.6.0"
         },
         "appdirs": {
             "hashes": [
@@ -961,10 +961,10 @@
         },
         "six": {
             "hashes": [
-                "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259",
-                "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"
+                "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
+                "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "version": "==1.15.0"
+            "version": "==1.16.0"
         },
         "snowballstemmer": {
             "hashes": [
