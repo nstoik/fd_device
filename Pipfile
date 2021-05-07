@@ -28,7 +28,7 @@ pylint = "~=2.8.2"
 pyment = {git = "https://github.com/dadadel/pyment",editable = true}
 
 [packages]
-SQLAlchemy = "~=1.4.11"
+SQLAlchemy = "~=1.4.14"
 # for Postgresql
 psycopg2 = "~=2.8.6"
 alembic = "~=1.5.7"
